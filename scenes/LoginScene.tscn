@@ -1,0 +1,160 @@
+[gd_scene format=3 uid="uid://c1sjnlyohe7c7"]
+
+[ext_resource type="Script" uid="uid://dvcupc7v3rp1c" path="res://scripts/LoginScene.gd" id="1_jved0"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_k18wg"]
+content_margin_left = 12.0
+content_margin_right = 12.0
+bg_color = Color(0.050980393, 0.07450981, 0.09411765, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.1764706, 0.23921569, 0.3019608, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tg33f"]
+bg_color = Color(0.050980393, 0.07450981, 0.09411765, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.18039216, 0.8, 0.44313726, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2wtin"]
+bg_color = Color(0.15294118, 0.68235296, 0.3764706, 1)
+border_width_bottom = 3
+border_color = Color(0.11764706, 0.50980395, 0.29803923, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vp63v"]
+bg_color = Color(0.11764706, 0.50980395, 0.29803923, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bxsie"]
+bg_color = Color(0.18039216, 0.8, 0.44313726, 1)
+border_width_bottom = 3
+border_color = Color(0.15294118, 0.68235296, 0.3764706, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xl87b"]
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.25490198, 0.35686275, 0.4627451, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_k821f"]
+bg_color = Color(0.17254902, 0.24313726, 0.3137255, 0.26666668)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3647059, 0.6784314, 0.8862745, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="LoginScene" type="Control" unique_id=538239670]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_jved0")
+
+[node name="Background" type="ColorRect" parent="." unique_id=1973476066]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.047058824, 0.06666667, 0.09019608, 1)
+
+[node name="AuthRequest" type="HTTPRequest" parent="." unique_id=252428985]
+
+[node name="CardBg" type="Panel" parent="." unique_id=463289072]
+custom_minimum_size = Vector2(360, 340)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=568604200]
+custom_minimum_size = Vector2(360, 340)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -180.0
+offset_top = -170.0
+offset_right = 180.0
+offset_bottom = 170.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="StatusLabel" type="Label" parent="VBoxContainer" unique_id=939074811]
+layout_mode = 2
+text = " "
+
+[node name="Label" type="Label" parent="VBoxContainer" unique_id=2076006013]
+layout_mode = 2
+text = "⚡ SolarFuture Command Interface"
+
+[node name="UsernameInput" type="LineEdit" parent="VBoxContainer" unique_id=2090685675]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_k18wg")
+theme_override_styles/focus = SubResource("StyleBoxFlat_tg33f")
+placeholder_text = "Username"
+
+[node name="PasswordInput" type="LineEdit" parent="VBoxContainer" unique_id=944823505]
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_k18wg")
+theme_override_styles/focus = SubResource("StyleBoxFlat_tg33f")
+placeholder_text = "Password"
+secret = true
+
+[node name="LoginBtn" type="Button" parent="VBoxContainer" unique_id=1009096333]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_2wtin")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_vp63v")
+theme_override_styles/hover = SubResource("StyleBoxFlat_bxsie")
+text = "Log In"
+
+[node name="RegisterBtn" type="Button" parent="VBoxContainer" unique_id=1334749401]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_xl87b")
+theme_override_styles/hover = SubResource("StyleBoxFlat_k821f")
+text = "Register New Officer"

@@ -1,0 +1,40 @@
+[gd_scene format=3 uid="uid://csiewpvwqesrn"]
+
+[ext_resource type="Script" uid="uid://47hqexytc4bm" path="res://scripts/Projectile.gd" id="1_vihyi"]
+[ext_resource type="Texture2D" uid="uid://cjjo7anxvfdx5" path="res://assets/projectile_solar.png" id="2_vihyi"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kdm4f"]
+atlas = ExtResource("2_vihyi")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_13obt"]
+atlas = ExtResource("2_vihyi")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_dprbf"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kdm4f")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_13obt")
+}],
+"loop": 1,
+"name": &"fly",
+"speed": 2.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_2clhr"]
+radius = 8.0
+
+[node name="Projectile" type="Area2D" unique_id=1546157200]
+script = ExtResource("1_vihyi")
+
+[node name="Sprite2D" type="AnimatedSprite2D" parent="." unique_id=920876539]
+sprite_frames = SubResource("SpriteFrames_dprbf")
+animation = &"fly"
+flip_h = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1236311889]
+shape = SubResource("CircleShape2D_2clhr")

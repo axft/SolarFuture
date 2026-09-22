@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://cy7dw7ippssli"]
+
+[ext_resource type="Script" uid="uid://bnrggrmho3d13" path="res://scripts/SmogEnemy.gd" id="1_a8wej"]
+[ext_resource type="Texture2D" uid="uid://dq23qpevqtnpc" path="res://assets/placeholder.png" id="2_s8lgt"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_2clhr"]
+radius = 18.0
+
+[node name="SmogEnemy" type="PathFollow2D" unique_id=8423586]
+loop = false
+script = ExtResource("1_a8wej")
+
+[node name="Hitbox" type="Area2D" parent="." unique_id=810359078]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox" unique_id=542356587]
+shape = SubResource("CircleShape2D_2clhr")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1947089027]
+texture = ExtResource("2_s8lgt")

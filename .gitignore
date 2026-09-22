@@ -1,0 +1,10 @@
+# Godot 4+ cache and imported assets (regenerated automatically)
+.godot/
+
+# Exported binaries / builds
+build/
+export/
+
+# OS-generated files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,129 @@
+[gd_scene format=3 uid="uid://bo4r3b82blaxq"]
+
+[ext_resource type="Script" uid="uid://newmimxk4cik" path="res://scripts/MainGame.gd" id="1_hat22"]
+[ext_resource type="Texture2D" uid="uid://dmmdaxr26gvme" path="res://assets/map_grass.png" id="2_p73vr"]
+[ext_resource type="Script" uid="uid://c3uvh67nvaco4" path="res://scenes/PlacementPreview.gd" id="2_xej52"]
+
+[sub_resource type="Curve2D" id="Curve2D_t4bxf"]
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, -24, 216, 0, 0, 0, 0, 80, 208, 0, 0, 0, 0, 192, 224, 0, 0, 0, 0, 288, 208, 0, 0, 0, 0, 392, 216, 0, 0, 0, 0, 448, 184, 0, 0, 0, 0, 440, 128, 0, 0, 0, 0, 392, 96, 0, 0, 0, 0, 336, 104, 0, 0, 0, 0, 296, 152, 0, 0, 0, 0, 304, 224, 0, 0, 0, 0, 320, 280, 0, 0, 0, 0, 320, 336, 0, 0, 0, 0, 312, 384, 0, 0, 0, 0, 280, 432, 0, 0, 0, 0, 208, 448, 0, 0, 0, 0, 176, 408, 0, 0, 0, 0, 192, 344, 0, 0, 0, 0, 256, 328, 0, 0, 0, 0, 328, 352, 0, 0, 0, 0, 384, 344, 0, 0, 0, 0, 440, 336, 0, 0, 0, 0, 512, 336, 0, 0, 0, 0, 568, 336, 0, 0, 0, 0, 592, 304, 0, 0, 0, 0, 608, 248, 0, 0, 0, 0, 656, 216, 0, 0, 0, 0, 720, 240, 0, 0, 0, 0, 744, 304, 0, 0, 0, 0, 744, 368, 0, 0, 0, 0, 736, 424, 0, 0, 0, 0, 696, 464, 0, 0, 0, 0, 632, 472, 0, 0, 0, 0, 576, 456, 0, 0, 0, 0, 520, 448, 0, 0, 0, 0, 488, 472, 0, 0, 0, 0, 504, 512, 0, 0, 0, 0, 512, 552, 0, 0, 0, 0, 504, 608)
+}
+point_count = 39
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hat22"]
+bg_color = Color(0.16078432, 0.5019608, 0.7254902, 1)
+border_width_bottom = 3
+border_color = Color(0.12156863, 0.38039216, 0.5529412, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xej52"]
+bg_color = Color(0.20392157, 0.59607846, 0.85882354, 1)
+border_width_bottom = 3
+border_color = Color(0.16078432, 0.5019608, 0.7254902, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_t4bxf"]
+bg_color = Color(0.827451, 0.32941177, 0, 1)
+border_width_bottom = 3
+border_color = Color(0.627451, 0.2509804, 0, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x628s"]
+bg_color = Color(0.9019608, 0.49411765, 0.13333334, 1)
+border_width_bottom = 3
+border_color = Color(0.827451, 0.32941177, 0, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="MainGame" type="Node2D" unique_id=1137902059]
+z_index = 1
+script = ExtResource("1_hat22")
+
+[node name="MapBackground" type="TextureRect" parent="." unique_id=106765943]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 960.0
+offset_bottom = 600.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_p73vr")
+
+[node name="Path2D" type="Path2D" parent="." unique_id=1049021551]
+curve = SubResource("Curve2D_t4bxf")
+
+[node name="RoadVisual" type="Line2D" parent="Path2D" unique_id=1331998653]
+visible = false
+width = 44.0
+default_color = Color(0.627451, 0.47058824, 0.33333334, 1)
+joint_mode = 2
+begin_cap_mode = 2
+end_cap_mode = 2
+
+[node name="PlacementPreview" type="Node2D" parent="." unique_id=201914215]
+script = ExtResource("2_xej52")
+
+[node name="ScoreSyncRequest" type="HTTPRequest" parent="." unique_id=2090032608]
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=1394398258]
+
+[node name="ColorRect" type="ColorRect" parent="UI" unique_id=99366639]
+offset_right = 960.0
+offset_bottom = 50.0
+color = Color(0.05882353, 0.09019608, 0.11764706, 1)
+
+[node name="HBoxContainer" type="HBoxContainer" parent="UI/ColorRect" unique_id=903212129]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 18
+
+[node name="EnergyLabel" type="Label" parent="UI/ColorRect/HBoxContainer" unique_id=535765928]
+layout_mode = 2
+text = "⚡ Energy: 300 kWh"
+
+[node name="HealthLabel" type="Label" parent="UI/ColorRect/HBoxContainer" unique_id=582354883]
+layout_mode = 2
+text = "🌍 Health: 100%"
+
+[node name="WaveLabel" type="Label" parent="UI/ColorRect/HBoxContainer" unique_id=1233390983]
+layout_mode = 2
+text = "🌊 Wave: 1"
+
+[node name="ScoreLabel" type="Label" parent="UI/ColorRect/HBoxContainer" unique_id=590562959]
+layout_mode = 2
+text = "🌱 Score: 0"
+
+[node name="StartWaveBtn" type="Button" parent="UI" unique_id=1278604185]
+custom_minimum_size = Vector2(160, 42)
+offset_left = 728.0
+offset_top = 536.0
+offset_right = 888.0
+offset_bottom = 578.0
+theme_override_styles/normal = SubResource("StyleBoxFlat_hat22")
+theme_override_styles/hover = SubResource("StyleBoxFlat_xej52")
+text = "Start Wave"
+
+[node name="BuildSolarBtn" type="Button" parent="UI" unique_id=281236449]
+offset_left = 792.0
+offset_top = 96.0
+offset_right = 944.0
+offset_bottom = 138.0
+theme_override_styles/normal = SubResource("StyleBoxFlat_t4bxf")
+theme_override_styles/hover = SubResource("StyleBoxFlat_x628s")
+text = "Build Solar"
