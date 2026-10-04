@@ -127,3 +127,43 @@ offset_bottom = 138.0
 theme_override_styles/normal = SubResource("StyleBoxFlat_t4bxf")
 theme_override_styles/hover = SubResource("StyleBoxFlat_x628s")
 text = "Build Solar"
+
+[node name="BuildWindBtn" type="Button" parent="UI" unique_id=513856088]
+offset_left = 792.0
+offset_top = 152.0
+offset_right = 944.0
+offset_bottom = 194.0
+text = "Build Wind
+"
+
+[node name="PauseBtn" type="Button" parent="UI" unique_id=1622220355]
+offset_right = 8.0
+offset_bottom = 8.0
+
+[node name="TowerMenu" type="PanelContainer" parent="UI" unique_id=1359298213]
+offset_left = 24.0
+offset_top = 400.0
+offset_right = 244.0
+offset_bottom = 590.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/TowerMenu" unique_id=1264537779]
+layout_mode = 2
+
+[node name="TargetOptionBtn" type="OptionButton" parent="UI/TowerMenu/VBoxContainer" unique_id=1764542940]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="UI/TowerMenu/VBoxContainer" unique_id=127573866]
+layout_mode = 2
+text = "Solar Array"
+
+[node name="UpgradeDmgBtn" type="Button" parent="UI/TowerMenu/VBoxContainer" unique_id=2100034434]
+layout_mode = 2
+text = "⚡ Damage Lvl 1 (60 kWh)"
+
+[node name="UpgradeSpdBtn" type="Button" parent="UI/TowerMenu/VBoxContainer" unique_id=2099091509]
+layout_mode = 2
+text = "💨 Speed Lvl 1 (50 kWh)"
+
+[node name="CloseBtn" type="Button" parent="UI/TowerMenu/VBoxContainer" unique_id=568125820]
+layout_mode = 2
+text = "✖ Close"

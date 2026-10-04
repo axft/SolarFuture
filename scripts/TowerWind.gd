@@ -1,8 +1,8 @@
 extends Node2D
 
-@export var damage: float = 22.0
-@export var fire_rate: float = 1.2
-@export var range_radius: float = 160.0
+@export var damage: float = 10.0
+@export var fire_rate: float = 3.0
+@export var range_radius: float = 110.0
 @export var projectile_scene: PackedScene = preload("res://scenes/Projectile.tscn")
 
 @onready var range_area = $RangeArea
@@ -12,11 +12,11 @@ var cooldown_timer: float = 0.0
 var targets_in_range: Array[Node2D] = []
 
 # Targeting & Upgrades
-var target_mode: String = "FIRST" # "FIRST", "CLOSEST", "LAST"
+var target_mode: String = "FIRST"
 var damage_level: int = 1
 var speed_level: int = 1
-var damage_upgrade_cost: int = 60
-var speed_upgrade_cost: int = 50
+var damage_upgrade_cost: int = 50
+var speed_upgrade_cost: int = 40
 
 func _ready():
 	add_to_group("towers")
@@ -87,7 +87,7 @@ func shoot(target_enemy: Node2D):
 	var proj = projectile_scene.instantiate()
 	proj.global_position = global_position
 	if proj.has_method("setup"):
-		proj.setup(target_enemy, damage, 480.0, "solar")
+		proj.setup(target_enemy, damage, 550.0, "wind")
 	else:
 		proj.target = target_enemy
 		proj.damage = damage
@@ -101,17 +101,17 @@ func _on_animation_finished():
 func upgrade_damage() -> bool:
 	if GameState.energy >= damage_upgrade_cost:
 		GameState.energy -= damage_upgrade_cost
-		damage += 10.0
+		damage += 5.0
 		damage_level += 1
-		damage_upgrade_cost += 30
+		damage_upgrade_cost += 25
 		return true
 	return false
 
 func upgrade_speed() -> bool:
 	if GameState.energy >= speed_upgrade_cost:
 		GameState.energy -= speed_upgrade_cost
-		fire_rate += 0.4
+		fire_rate += 0.8
 		speed_level += 1
-		speed_upgrade_cost += 25
+		speed_upgrade_cost += 20
 		return true
 	return false

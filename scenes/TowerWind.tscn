@@ -1,0 +1,62 @@
+[gd_scene format=3 uid="uid://mujqchtvmcfs"]
+
+[ext_resource type="Script" uid="uid://cjad2gt8l5qua" path="res://scripts/TowerWind.gd" id="1_y6oej"]
+[ext_resource type="Texture2D" uid="uid://cqsfpdwvw8q6v" path="res://assets/tower_wind_attack.png" id="2_a63oi"]
+[ext_resource type="Texture2D" uid="uid://bsx8mj0o5n788" path="res://assets/tower_wind_idle.png" id="3_ggnvq"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_6xtrq"]
+radius = 110.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1fyeg"]
+atlas = ExtResource("2_a63oi")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tv86g"]
+atlas = ExtResource("2_a63oi")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3xwpf"]
+atlas = ExtResource("3_ggnvq")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6xudr"]
+atlas = ExtResource("3_ggnvq")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_k18wg"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1fyeg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tv86g")
+}],
+"loop": 1,
+"name": &"attack",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3xwpf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6xudr")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 5.0
+}]
+
+[node name="TowerWind" type="Node2D" unique_id=702159944]
+script = ExtResource("1_y6oej")
+
+[node name="RangeArea" type="Area2D" parent="." unique_id=806358022]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RangeArea" unique_id=553267867]
+shape = SubResource("CircleShape2D_6xtrq")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1721799104]
+sprite_frames = SubResource("SpriteFrames_k18wg")
+animation = &"idle"
+autoplay = "idle"
