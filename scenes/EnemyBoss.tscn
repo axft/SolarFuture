@@ -1,0 +1,111 @@
+[gd_scene format=3 uid="uid://dl76hv2d7gciy"]
+
+[ext_resource type="Script" uid="uid://b7wd8n1xvn05u" path="res://scripts/EnemyBoss.gd" id="1_lgpsf"]
+[ext_resource type="Texture2D" uid="uid://c1pgct5hweguu" path="res://assets/fx_bosssmog_blow.png" id="2_jo5ro"]
+[ext_resource type="Texture2D" uid="uid://cv0wfn67mxdrl" path="res://assets/enemy_boss_smog.png" id="2_rbl8f"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_dw4b7"]
+radius = 36.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dx2px"]
+atlas = ExtResource("2_jo5ro")
+region = Rect2(0, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ncwit"]
+atlas = ExtResource("2_jo5ro")
+region = Rect2(96, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_huf8y"]
+atlas = ExtResource("2_jo5ro")
+region = Rect2(192, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qvwv5"]
+atlas = ExtResource("2_jo5ro")
+region = Rect2(288, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kxl77"]
+atlas = ExtResource("2_jo5ro")
+region = Rect2(384, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8wsbm"]
+atlas = ExtResource("2_jo5ro")
+region = Rect2(480, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yem08"]
+atlas = ExtResource("2_jo5ro")
+region = Rect2(576, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jo5ro"]
+atlas = ExtResource("2_rbl8f")
+region = Rect2(0, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_i0qa3"]
+atlas = ExtResource("2_rbl8f")
+region = Rect2(96, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jdlf6"]
+atlas = ExtResource("2_rbl8f")
+region = Rect2(192, 0, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_o8sp5"]
+atlas = ExtResource("2_rbl8f")
+region = Rect2(288, 0, 96, 96)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_lgpsf"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dx2px")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ncwit")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_huf8y")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qvwv5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kxl77")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8wsbm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yem08")
+}],
+"loop": 0,
+"name": &"death",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jo5ro")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_i0qa3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jdlf6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_o8sp5")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}]
+
+[node name="EnemyBoss" type="PathFollow2D" unique_id=1733393422]
+script = ExtResource("1_lgpsf")
+
+[node name="Hitbox" type="Area2D" parent="." unique_id=1641138597]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox" unique_id=1628329754]
+shape = SubResource("CircleShape2D_dw4b7")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=710790796]
+sprite_frames = SubResource("SpriteFrames_lgpsf")
+animation = &"death"
+autoplay = "default"

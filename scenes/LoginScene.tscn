@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://c1sjnlyohe7c7"]
 
 [ext_resource type="Script" uid="uid://dvcupc7v3rp1c" path="res://scripts/LoginScene.gd" id="1_jved0"]
+[ext_resource type="Texture2D" uid="uid://dhaw4welbeo2i" path="res://assets/solar-panels-in-field-landscape-background-vector-Picsart-AiImageEnhancer.jpg" id="2_8t32u"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_k18wg"]
 content_margin_left = 12.0
@@ -86,14 +87,14 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_jved0")
 
-[node name="Background" type="ColorRect" parent="." unique_id=1973476066]
+[node name="Background" type="TextureRect" parent="." unique_id=1561631751]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.047058824, 0.06666667, 0.09019608, 1)
+texture = ExtResource("2_8t32u")
 
 [node name="AuthRequest" type="HTTPRequest" parent="." unique_id=252428985]
 

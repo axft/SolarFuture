@@ -2,9 +2,34 @@
 
 [ext_resource type="Script" uid="uid://bnrggrmho3d13" path="res://scripts/SmogEnemy.gd" id="1_a8wej"]
 [ext_resource type="Texture2D" uid="uid://otdhxe86w0fk" path="res://assets/enemy_smog.png" id="2_a8wej"]
+[ext_resource type="Texture2D" uid="uid://bcev2n7ubg26j" path="res://assets/fx_smog_pop.png" id="2_s8lgt"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_2clhr"]
 radius = 18.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_uuqy5"]
+atlas = ExtResource("2_s8lgt")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_885rm"]
+atlas = ExtResource("2_s8lgt")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_88i1k"]
+atlas = ExtResource("2_s8lgt")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xwctt"]
+atlas = ExtResource("2_s8lgt")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pphsq"]
+atlas = ExtResource("2_s8lgt")
+region = Rect2(192, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_l2yma"]
+atlas = ExtResource("2_s8lgt")
+region = Rect2(240, 0, 48, 48)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_s8lgt"]
 atlas = ExtResource("2_a8wej")
@@ -24,6 +49,29 @@ region = Rect2(144, 0, 48, 48)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_2clhr"]
 animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_uuqy5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_885rm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_88i1k")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xwctt")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pphsq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_l2yma")
+}],
+"loop": 0,
+"name": &"death",
+"speed": 10.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_s8lgt")
@@ -51,6 +99,7 @@ script = ExtResource("1_a8wej")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox" unique_id=542356587]
 shape = SubResource("CircleShape2D_2clhr")
 
-[node name="Sprite2D" type="AnimatedSprite2D" parent="." unique_id=45550452]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=45550452]
 sprite_frames = SubResource("SpriteFrames_2clhr")
+animation = &"death"
 autoplay = "default"

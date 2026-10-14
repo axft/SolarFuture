@@ -11,8 +11,12 @@ extends Node2D
 var cooldown_timer: float = 0.0
 var targets_in_range: Array[Node2D] = []
 
-# Targeting & Upgrades
+# --- TARGETING MODE ---
 var target_mode: String = "FIRST" # "FIRST", "CLOSEST", "LAST"
+
+# --- DETAILED PERFORMANCE STATS (Feature 2) ---
+var kills: int = 0
+var total_damage_dealt: float = 0.0
 var damage_level: int = 1
 var speed_level: int = 1
 var damage_upgrade_cost: int = 60
@@ -86,8 +90,10 @@ func shoot(target_enemy: Node2D):
 
 	var proj = projectile_scene.instantiate()
 	proj.global_position = global_position
+	
+	# Passes 'self' as the source tower so stats credit to this tower
 	if proj.has_method("setup"):
-		proj.setup(target_enemy, damage, 480.0, "solar")
+		proj.setup(target_enemy, damage, 480.0, "solar", self)
 	else:
 		proj.target = target_enemy
 		proj.damage = damage
@@ -98,12 +104,23 @@ func _on_animation_finished():
 	if anim_sprite and anim_sprite.animation == "attack":
 		anim_sprite.play("idle")
 
+# --- STAT TRACKING HELPERS ---
+func record_hit(dmg: float, was_killed: bool = false):
+	total_damage_dealt += dmg
+	if was_killed:
+		kills += 1
+
+func get_dps() -> float:
+	return damage * fire_rate
+
+# --- UPGRADES WITH JUICY POP ANIMATIONS ---
 func upgrade_damage() -> bool:
 	if GameState.energy >= damage_upgrade_cost:
 		GameState.energy -= damage_upgrade_cost
 		damage += 10.0
 		damage_level += 1
 		damage_upgrade_cost += 30
+		play_punch_animation()
 		return true
 	return false
 
@@ -113,5 +130,12 @@ func upgrade_speed() -> bool:
 		fire_rate += 0.4
 		speed_level += 1
 		speed_upgrade_cost += 25
+		play_punch_animation()
 		return true
 	return false
+
+# Bounces the tower slightly to give physical visual feedback
+func play_punch_animation():
+	var tween = create_tween()
+	tween.tween_property(self, "scale", Vector2(1.2, 1.2), 0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(self, "scale", Vector2(1.0, 1.0), 0.12).set_trans(Tween.TRANS_SINE)

@@ -1,0 +1,104 @@
+[gd_scene format=3 uid="uid://b6k3wfm5ah78y"]
+
+[ext_resource type="Script" uid="uid://f7yhjtx0v6ne" path="res://scripts/EnemyMethane.gd" id="1_60l25"]
+[ext_resource type="Texture2D" uid="uid://cfxjh11t0lslw" path="res://assets/fx_methane_pop.png" id="2_d0w71"]
+[ext_resource type="Texture2D" uid="uid://cif0qr8es313x" path="res://assets/enemy_methane.png" id="2_vspid"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_y2m6v"]
+radius = 18.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0qdf3"]
+atlas = ExtResource("2_d0w71")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bn4y6"]
+atlas = ExtResource("2_d0w71")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0rd18"]
+atlas = ExtResource("2_d0w71")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_d1644"]
+atlas = ExtResource("2_d0w71")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2q2s6"]
+atlas = ExtResource("2_d0w71")
+region = Rect2(192, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2450s"]
+atlas = ExtResource("2_d0w71")
+region = Rect2(240, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vspid"]
+atlas = ExtResource("2_vspid")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_d0w71"]
+atlas = ExtResource("2_vspid")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3jmid"]
+atlas = ExtResource("2_vspid")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_s8dvm"]
+atlas = ExtResource("2_vspid")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_dx2px"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0qdf3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bn4y6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0rd18")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_d1644")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2q2s6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2450s")
+}],
+"loop": 0,
+"name": &"death",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vspid")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_d0w71")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3jmid")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_s8dvm")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}]
+
+[node name="EnemyMethane" type="PathFollow2D" unique_id=257215792]
+script = ExtResource("1_60l25")
+
+[node name="Hitbox" type="Area2D" parent="." unique_id=270525306]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox" unique_id=325800466]
+shape = SubResource("CircleShape2D_y2m6v")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1543213543]
+sprite_frames = SubResource("SpriteFrames_dx2px")
+animation = &"death"
+autoplay = "default"
