@@ -44,6 +44,7 @@ func take_damage(amount: float):
 func die():
 	is_dying = true
 	speed = 0 # Freeze in place while popping
+	SoundManager.play_sfx_path("res://assets/enemyGas_pop.mp3")
 	
 	# Disable hitbox so towers immediately retarget other enemies
 	var hitbox = get_node_or_null("Hitbox/CollisionShape2D")

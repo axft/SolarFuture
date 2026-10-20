@@ -120,6 +120,7 @@ func upgrade_damage() -> bool:
 		damage += 10.0
 		damage_level += 1
 		damage_upgrade_cost += 30
+		SoundManager.play_sfx_path("res://assets/tower_upgrade.wav")
 		play_punch_animation()
 		return true
 	return false
@@ -130,6 +131,7 @@ func upgrade_speed() -> bool:
 		fire_rate += 0.4
 		speed_level += 1
 		speed_upgrade_cost += 25
+		SoundManager.play_sfx_path("res://assets/tower_upgrade.wav")
 		play_punch_animation()
 		return true
 	return false
