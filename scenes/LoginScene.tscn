@@ -1,7 +1,85 @@
 [gd_scene format=3 uid="uid://c1sjnlyohe7c7"]
 
 [ext_resource type="Script" uid="uid://dvcupc7v3rp1c" path="res://scripts/LoginScene.gd" id="1_jved0"]
-[ext_resource type="Texture2D" uid="uid://dhaw4welbeo2i" path="res://assets/solar-panels-in-field-landscape-background-vector-Picsart-AiImageEnhancer.jpg" id="2_8t32u"]
+[ext_resource type="Texture2D" uid="uid://bt6ovjjuhn7wt" path="res://assets/logInBackground.png" id="2_8t32u"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_j1o45"]
+atlas = ExtResource("2_8t32u")
+region = Rect2(0, 0, 960, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yq7y8"]
+atlas = ExtResource("2_8t32u")
+region = Rect2(960, 0, 960, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pu6m6"]
+atlas = ExtResource("2_8t32u")
+region = Rect2(1920, 0, 960, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rkkli"]
+atlas = ExtResource("2_8t32u")
+region = Rect2(2880, 0, 960, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bfly7"]
+atlas = ExtResource("2_8t32u")
+region = Rect2(3840, 0, 960, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_74qbu"]
+atlas = ExtResource("2_8t32u")
+region = Rect2(4800, 0, 960, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2ynyd"]
+atlas = ExtResource("2_8t32u")
+region = Rect2(5760, 0, 960, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ebsv3"]
+atlas = ExtResource("2_8t32u")
+region = Rect2(6720, 0, 960, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_my2he"]
+atlas = ExtResource("2_8t32u")
+region = Rect2(7680, 0, 960, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6qopg"]
+atlas = ExtResource("2_8t32u")
+region = Rect2(8640, 0, 960, 600)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_2clhr"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_j1o45")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yq7y8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pu6m6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rkkli")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bfly7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_74qbu")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2ynyd")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ebsv3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_my2he")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6qopg")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_k18wg"]
 content_margin_left = 12.0
@@ -87,14 +165,12 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_jved0")
 
-[node name="Background" type="TextureRect" parent="." unique_id=1561631751]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("2_8t32u")
+[node name="Background" type="AnimatedSprite2D" parent="." unique_id=889646693]
+position = Vector2(480, 301)
+sprite_frames = SubResource("SpriteFrames_2clhr")
+autoplay = "default"
+frame = 8
+frame_progress = 0.5879396
 
 [node name="AuthRequest" type="HTTPRequest" parent="." unique_id=252428985]
 

@@ -2,6 +2,7 @@ extends Node2D
 
 @onready var path_2d = $Path2D
 @onready var http_request = $ScoreSyncRequest
+@onready var map_bg = get_node_or_null("MapBackground")
 
 # --- HUD LABELS ---
 @onready var energy_label = $UI/ColorRect/HBoxContainer/EnergyLabel
@@ -14,9 +15,9 @@ extends Node2D
 @onready var build_solar_btn = $UI/BuildSolarBtn
 @onready var build_wind_btn = get_node_or_null("UI/BuildWindBtn")
 @onready var pause_btn = get_node_or_null("UI/PauseBtn")
-@onready var speed_btn = get_node_or_null("UI/SpeedBtn") # Feature 1
+@onready var speed_btn = get_node_or_null("UI/SpeedBtn")
 
-# --- TOWER INSPECTOR UI (Feature 2) ---
+# --- TOWER INSPECTOR UI ---
 @onready var tower_menu = get_node_or_null("UI/TowerMenu")
 @onready var menu_title = get_node_or_null("UI/TowerMenu/VBoxContainer/TitleLabel")
 @onready var stats_label = get_node_or_null("UI/TowerMenu/VBoxContainer/StatsLabel")
@@ -34,27 +35,31 @@ var methane_scene: PackedScene = preload("res://scenes/EnemyMethane.tscn") if Re
 var soot_scene: PackedScene = preload("res://scenes/EnemySoot.tscn") if ResourceLoader.exists("res://scenes/EnemySoot.tscn") else smog_scene
 var boss_scene: PackedScene = preload("res://scenes/EnemyBoss.tscn") if ResourceLoader.exists("res://scenes/EnemyBoss.tscn") else smog_scene
 
-# --- GAMEPLAY STATE ---
+# --- RUNTIME STATE ---
 var selected_tower: Node2D = null
 var enemies_to_spawn: int = 6
 var enemies_spawned: int = 0
 var spawn_timer: float = 0.0
-var game_speed: float = 1.0 # 1.0 or 2.0
+var game_speed: float = 1.0
+
+# Victory Popup Modal
+var victory_modal: PanelContainer
 
 func _ready():
 	Engine.time_scale = 1.0
 	
+	# Load Selected Stage Settings
+	var stage_cfg = GameState.STAGES.get(GameState.selected_stage_id, GameState.STAGES[1])
+	if map_bg and "color" in map_bg:
+		map_bg.color = stage_cfg.bg_color
+
 	start_wave_btn.pressed.connect(_on_start_wave_pressed)
 	build_solar_btn.pressed.connect(_on_build_solar_pressed)
 	
-	if build_wind_btn:
-		build_wind_btn.pressed.connect(_on_build_wind_pressed)
-	if pause_btn:
-		pause_btn.pressed.connect(_on_pause_pressed)
-	if speed_btn:
-		speed_btn.pressed.connect(_on_speed_pressed)
+	if build_wind_btn: build_wind_btn.pressed.connect(_on_build_wind_pressed)
+	if pause_btn: pause_btn.pressed.connect(_on_pause_pressed)
+	if speed_btn: speed_btn.pressed.connect(_on_speed_pressed)
 		
-	# Tower Inspector Setup
 	if tower_menu:
 		tower_menu.visible = false
 		if close_menu_btn: close_menu_btn.pressed.connect(deselect_tower)
@@ -84,11 +89,10 @@ func _process(delta: float):
 			spawn_timer = 0.0
 			enemies_spawned += 1
 
-	# Keep live stats ticking in the inspector if a tower is currently selected
 	if is_instance_valid(selected_tower) and tower_menu and tower_menu.visible:
 		update_tower_stats_text()
 
-# --- WAVE & ENEMY SPAWNING ---
+# --- ENEMY SPAWNING ---
 func spawn_enemy():
 	var enemy_to_spawn: PackedScene = smog_scene
 	
@@ -127,12 +131,18 @@ func _on_enemy_defeated(enemy):
 
 func check_wave_status():
 	await get_tree().process_frame
-	if GameState.is_game_over:
-		return
+	if GameState.is_game_over: return
 		
 	var active_enemies = get_tree().get_nodes_in_group("enemies")
 	if enemies_spawned >= enemies_to_spawn and active_enemies.size() == 0:
 		GameState.is_wave_active = false
+		
+		# Check Stage Victory Objective
+		var target_wave = GameState.STAGES[GameState.selected_stage_id].target_wave
+		if GameState.wave >= target_wave and not GameState.is_endless_mode:
+			trigger_stage_victory()
+			return
+
 		GameState.wave += 1
 		GameState.energy += 100
 		enemies_spawned = 0
@@ -141,24 +151,106 @@ func check_wave_status():
 		start_wave_btn.text = "▶️ Start Wave %d" % GameState.wave
 		update_ui()
 
-# --- CONTROLS: START, PAUSE & SPEED (Feature 1) ---
+# --- STAGE VICTORY & SCORE TRACKING CONFIRMATION ---
+func trigger_stage_victory():
+	var cfg = GameState.STAGES[GameState.selected_stage_id]
+	GameState.energy += cfg.bonus_kwh
+	GameState.clean_kwh_earned += cfg.bonus_kwh
+	GameState.sustainability_score += 200
+	
+	# Save Score to MySQL Immediately!
+	sync_score_to_mysql()
+	
+	show_victory_modal()
+
+func show_victory_modal():
+	victory_modal = PanelContainer.new()
+	victory_modal.custom_minimum_size = Vector2(480, 320)
+	victory_modal.position = Vector2(240, 140)
+	
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color("#102231")
+	sb.border_color = Color("#2ecc71")
+	sb.set_corner_radius_all(14)
+	sb.border_width_bottom = 6
+	sb.set_border_width_all(2)
+	sb.content_margin_top = 18
+	sb.content_margin_bottom = 18
+	sb.content_margin_left = 18
+	sb.content_margin_right = 18
+	victory_modal.add_theme_stylebox_override("panel", sb)
+	$UI.add_child(victory_modal)
+
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 10)
+	victory_modal.add_child(vbox)
+
+	var title = Label.new()
+	title.text = "🏆 MISSION ACCOMPLISHED! 🏆"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 20)
+	title.add_theme_color_override("font_color", Color("#2ecc71"))
+	vbox.add_child(title)
+
+	var sub = Label.new()
+	sub.text = "Regional Biosphere Protected!"
+	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sub.add_theme_font_size_override("font_size", 11)
+	sub.add_theme_color_override("font_color", Color("#bdc3c7"))
+	vbox.add_child(sub)
+
+	var stats_box = Label.new()
+	stats_box.text = "Score: %d pts  |  Clean Energy: %d kWh\nCO₂ Mitigated: %d kg  |  Smog Clouds Filtered: %d" % [
+		GameState.sustainability_score, GameState.clean_kwh_earned,
+		GameState.co2_mitigated_kg, GameState.enemies_defeated
+	]
+	stats_box.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	stats_box.add_theme_font_size_override("font_size", 13)
+	stats_box.add_theme_color_override("font_color", Color("#f1c40f"))
+	vbox.add_child(stats_box)
+
+	var btn_hbox = HBoxContainer.new()
+	btn_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	btn_hbox.add_theme_constant_override("separation", 14)
+	vbox.add_child(btn_hbox)
+
+	var return_btn = Button.new()
+	return_btn.text = "🏠 Command Hub"
+	return_btn.custom_minimum_size = Vector2(170, 42)
+	return_btn.pressed.connect(func():
+		Engine.time_scale = 1.0
+		get_tree().change_scene_to_file("res://scenes/MainMenu.tscn")
+	)
+	btn_hbox.add_child(return_btn)
+
+	var endless_btn = Button.new()
+	endless_btn.text = "🌊 Endless Mode"
+	endless_btn.custom_minimum_size = Vector2(170, 42)
+	endless_btn.pressed.connect(func():
+		GameState.is_endless_mode = true
+		victory_modal.queue_free()
+		GameState.wave += 1
+		enemies_spawned = 0
+		enemies_to_spawn += 3
+		start_wave_btn.disabled = false
+		start_wave_btn.text = "▶️ Wave %d (Endless)" % GameState.wave
+		update_ui()
+	)
+	btn_hbox.add_child(endless_btn)
+
+# --- CONTROLS ---
 func _on_start_wave_pressed():
 	if GameState.is_paused:
 		show_warning_toast("⚠️ Operation paused! Unpause to start wave.")
 		return
-		
 	if not GameState.is_wave_active:
 		GameState.is_wave_active = true
 		start_wave_btn.disabled = true
 
 func _on_pause_pressed():
-	if GameState.is_game_over:
-		return
+	if GameState.is_game_over: return
 	GameState.is_paused = !GameState.is_paused
-	
-	if pause_btn:
-		pause_btn.text = "▶️ Resume" if GameState.is_paused else "⏸️ Pause"
-	
+	if pause_btn: pause_btn.text = "▶️ Resume" if GameState.is_paused else "⏸️ Pause"
 	if GameState.is_paused:
 		cancel_placement()
 		Engine.time_scale = 1.0
@@ -166,76 +258,45 @@ func _on_pause_pressed():
 		Engine.time_scale = game_speed
 
 func _on_speed_pressed():
-	if GameState.is_paused:
-		show_warning_toast("⚠️ Cannot change speed while paused.")
-		return
-
-	if game_speed == 1.0:
-		game_speed = 2.0
-		if speed_btn: speed_btn.text = "⏩ 2x"
-	else:
-		game_speed = 1.0
-		if speed_btn: speed_btn.text = "▶️ 1x"
-		
+	if GameState.is_paused: return
+	game_speed = 2.0 if game_speed == 1.0 else 1.0
+	if speed_btn: speed_btn.text = "⏩ 2x" if game_speed == 2.0 else "▶️ 1x"
 	Engine.time_scale = game_speed
 
-# --- BUILDING SELECTION & TOAST WARNINGS (Feature 3) ---
 func _on_build_solar_pressed():
-	if GameState.is_paused:
-		show_warning_toast("⚠️ Grid is paused! Unpause to construct.")
-		return
+	if GameState.is_paused: return
 	if GameState.energy < 100:
-		show_warning_toast("⚡ Insufficient Energy: 100 kWh required for Solar Array!")
+		show_warning_toast("⚡ Insufficient kWh for Solar Array!")
 		return
-
-	if GameState.selected_build_type == "SOLAR":
-		cancel_placement()
-	else:
-		GameState.selected_build_type = "SOLAR"
-		deselect_tower()
+	GameState.selected_build_type = "" if GameState.selected_build_type == "SOLAR" else "SOLAR"
+	deselect_tower()
 
 func _on_build_wind_pressed():
-	if GameState.is_paused:
-		show_warning_toast("⚠️ Grid is paused! Unpause to construct.")
-		return
+	if GameState.is_paused: return
 	if GameState.energy < 150:
-		show_warning_toast("⚡ Insufficient Energy: 150 kWh required for Wind Turbine!")
+		show_warning_toast("⚡ Insufficient kWh for Wind Turbine!")
 		return
-
-	if GameState.selected_build_type == "WIND":
-		cancel_placement()
-	else:
-		GameState.selected_build_type = "WIND"
-		deselect_tower()
+	GameState.selected_build_type = "" if GameState.selected_build_type == "WIND" else "WIND"
+	deselect_tower()
 
 func cancel_placement():
 	GameState.selected_build_type = ""
 
-# --- INPUT HANDLING ---
 func _input(event):
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
-		if GameState.selected_build_type != "":
-			cancel_placement()
-		else:
-			deselect_tower()
+		if GameState.selected_build_type != "": cancel_placement()
+		else: deselect_tower()
 		return
 			
 	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
-		if GameState.selected_build_type != "":
-			cancel_placement()
-		else:
-			deselect_tower()
+		if GameState.selected_build_type != "": cancel_placement()
+		else: deselect_tower()
 		return
 
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var hovered = get_viewport().gui_get_hovered_control()
-		if hovered != null and $UI.is_ancestor_of(hovered):
-			return
-			
-		if GameState.is_paused:
-			if GameState.selected_build_type != "":
-				show_warning_toast("⚠️ Unpause the simulation to place facilities.")
-			return
+		if hovered != null and $UI.is_ancestor_of(hovered): return
+		if GameState.is_paused: return
 
 		if GameState.selected_build_type != "":
 			handle_tower_placement()
@@ -245,55 +306,38 @@ func _input(event):
 
 func handle_tower_placement():
 	var spawn_pos = get_global_mouse_position()
-	
-	if GameState.selected_build_type == "SOLAR":
-		if GameState.energy >= 100:
-			GameState.energy -= 100
-			var tower = solar_tower_scene.instantiate()
-			tower.name = "Solar Array"
-			tower.global_position = spawn_pos
-			add_child(tower)
-			cancel_placement()
-			update_ui()
-		else:
-			show_warning_toast("⚡ Insufficient Energy (100 kWh required)!")
-			
-	elif GameState.selected_build_type == "WIND":
-		if GameState.energy >= 150:
-			GameState.energy -= 150
-			var tower = wind_tower_scene.instantiate()
-			tower.name = "Wind Turbine"
-			tower.global_position = spawn_pos
-			add_child(tower)
-			cancel_placement()
-			update_ui()
-		else:
-			show_warning_toast("⚡ Insufficient Energy (150 kWh required)!")
+	if GameState.selected_build_type == "SOLAR" and GameState.energy >= 100:
+		GameState.energy -= 100
+		var tower = solar_tower_scene.instantiate()
+		tower.name = "Solar Array"
+		tower.global_position = spawn_pos
+		add_child(tower)
+		cancel_placement()
+		update_ui()
+	elif GameState.selected_build_type == "WIND" and GameState.energy >= 150:
+		GameState.energy -= 150
+		var tower = wind_tower_scene.instantiate()
+		tower.name = "Wind Turbine"
+		tower.global_position = spawn_pos
+		add_child(tower)
+		cancel_placement()
+		update_ui()
 
-# --- DETAILED TOWER INSPECTOR & SELECTION (Feature 2) ---
 func check_tower_click(click_pos: Vector2):
 	var towers = get_tree().get_nodes_in_group("towers")
 	var closest_tower: Node2D = null
 	var min_distance: float = 40.0
-	
 	for tower in towers:
 		var dist = tower.global_position.distance_to(click_pos)
 		if dist < min_distance:
 			min_distance = dist
 			closest_tower = tower
-			
-	if closest_tower != null:
-		select_tower(closest_tower)
-	else:
-		deselect_tower()
+	if closest_tower != null: select_tower(closest_tower)
+	else: deselect_tower()
 
 func select_tower(tower: Node2D):
 	selected_tower = tower
-	
-	# Visual punch animation on click
-	if selected_tower.has_method("play_punch_animation"):
-		selected_tower.play_punch_animation()
-		
+	if selected_tower.has_method("play_punch_animation"): selected_tower.play_punch_animation()
 	if tower_menu:
 		tower_menu.visible = true
 		update_tower_menu()
@@ -301,22 +345,17 @@ func select_tower(tower: Node2D):
 
 func deselect_tower():
 	selected_tower = null
-	if tower_menu:
-		tower_menu.visible = false
+	if tower_menu: tower_menu.visible = false
 	queue_redraw()
 
 func update_tower_menu():
 	if not is_instance_valid(selected_tower) or not tower_menu:
 		deselect_tower()
 		return
-		
 	if menu_title: menu_title.text = selected_tower.name
 	update_tower_stats_text()
-	
-	if upgrade_dmg_btn:
-		upgrade_dmg_btn.text = "⚡ Dmg Lvl %d (%d kWh)" % [selected_tower.damage_level, selected_tower.damage_upgrade_cost]
-	if upgrade_spd_btn:
-		upgrade_spd_btn.text = "💨 Spd Lvl %d (%d kWh)" % [selected_tower.speed_level, selected_tower.speed_upgrade_cost]
+	if upgrade_dmg_btn: upgrade_dmg_btn.text = "⚡ Dmg Lvl %d (%d kWh)" % [selected_tower.damage_level, selected_tower.damage_upgrade_cost]
+	if upgrade_spd_btn: upgrade_spd_btn.text = "💨 Spd Lvl %d (%d kWh)" % [selected_tower.speed_level, selected_tower.speed_upgrade_cost]
 	if target_option:
 		match selected_tower.target_mode:
 			"FIRST": target_option.selected = 0
@@ -324,43 +363,22 @@ func update_tower_menu():
 			"LAST": target_option.selected = 2
 
 func update_tower_stats_text():
-	if not is_instance_valid(selected_tower):
-		return
-		
-	if stats_label:
-		var dps = selected_tower.get_dps() if selected_tower.has_method("get_dps") else (selected_tower.damage * selected_tower.fire_rate)
-		var k = selected_tower.kills if "kills" in selected_tower else 0
-		var td = selected_tower.total_damage_dealt if "total_damage_dealt" in selected_tower else 0.0
-		
-		stats_label.text = "Dmg: %.1f | Rate: %.1f/s\nDPS: %.1f | Range: %dpx\n🎯 Kills: %d\n💥 Total Dealt: %.0f" % [
-			selected_tower.damage,
-			selected_tower.fire_rate,
-			dps,
-			int(selected_tower.range_radius),
-			k,
-			td
-		]
+	if not is_instance_valid(selected_tower) or not stats_label: return
+	var dps = selected_tower.get_dps() if selected_tower.has_method("get_dps") else (selected_tower.damage * selected_tower.fire_rate)
+	stats_label.text = "Dmg: %.1f | Rate: %.1f/s\nDPS: %.1f | Range: %dpx\n🎯 Kills: %d | 💥 Total: %.0f" % [
+		selected_tower.damage, selected_tower.fire_rate, dps,
+		int(selected_tower.range_radius), selected_tower.kills if "kills" in selected_tower else 0,
+		selected_tower.total_damage_dealt if "total_damage_dealt" in selected_tower else 0.0
+	]
 
 func _on_upgrade_damage_pressed():
-	if not is_instance_valid(selected_tower): return
-	
-	if GameState.energy < selected_tower.damage_upgrade_cost:
-		show_warning_toast("⚡ Need %d kWh for Damage Upgrade!" % selected_tower.damage_upgrade_cost)
-		return
-		
-	if selected_tower.upgrade_damage():
+	if is_instance_valid(selected_tower) and selected_tower.upgrade_damage():
 		update_ui()
 		update_tower_menu()
 		queue_redraw()
 
 func _on_upgrade_speed_pressed():
-	if not is_instance_valid(selected_tower): return
-	
-	if GameState.energy < selected_tower.speed_upgrade_cost:
-		show_warning_toast("⚡ Need %d kWh for Speed Upgrade!" % selected_tower.speed_upgrade_cost)
-		return
-		
-	if selected_tower.upgrade_speed():
+	if is_instance_valid(selected_tower) and selected_tower.upgrade_speed():
 		update_ui()
 		update_tower_menu()
 		queue_redraw()
@@ -372,7 +390,6 @@ func _on_target_mode_selected(index: int):
 			1: selected_tower.target_mode = "CLOSEST"
 			2: selected_tower.target_mode = "LAST"
 
-# --- VISUAL SELECTION HIGHLIGHT ---
 func _draw():
 	if is_instance_valid(selected_tower):
 		var tower_pos = to_local(selected_tower.global_position)
@@ -381,11 +398,9 @@ func _draw():
 		draw_arc(tower_pos, r, 0.0, TAU, 64, Color(0.2, 0.7, 1.0, 0.8), 2.0)
 		draw_arc(tower_pos, 28.0, 0.0, TAU, 32, Color(1.0, 0.9, 0.2, 0.95), 3.0)
 
-# --- POPUP WARNING TOAST SYSTEM (Feature 3) ---
 func show_warning_toast(message: String):
 	var toast = $UI.get_node_or_null("ToastPopup")
 	if not toast:
-		# Automatically construct self-contained banner if node not in scene
 		toast = Label.new()
 		toast.name = "ToastPopup"
 		toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -394,7 +409,7 @@ func show_warning_toast(message: String):
 		toast.position = Vector2(300, 65)
 		
 		var sb = StyleBoxFlat.new()
-		sb.bg_color = Color(0.8, 0.2, 0.2, 0.9) # Vivid alert red
+		sb.bg_color = Color(0.8, 0.2, 0.2, 0.9)
 		sb.set_corner_radius_all(6)
 		sb.border_width_bottom = 2
 		sb.border_color = Color(1.0, 0.4, 0.4)
@@ -410,31 +425,52 @@ func show_warning_toast(message: String):
 	toast.visible = true
 
 	var tween = create_tween()
-	# Pop in
 	tween.tween_property(toast, "modulate:a", 1.0, 0.15)
 	tween.parallel().tween_property(toast, "scale", Vector2(1.0, 1.0), 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	# Hold for 1.5 seconds
 	tween.tween_interval(1.5)
-	# Fade out
 	tween.tween_property(toast, "modulate:a", 0.0, 0.25)
 	tween.tween_callback(func(): toast.visible = false)
 
 # --- DATABASE PERSISTENCE ---
-func trigger_game_over():
-	GameState.is_game_over = true
-	Engine.time_scale = 1.0
+func sync_score_to_mysql():
 	var url = "http://localhost/solarfuture/api/save_score.php"
 	var headers = ["Content-Type: application/json"]
+	
+	# Send user_id so PHP knows which account to credit (falls back to 1 for quick F6 testing)
+	var active_user_id = GameState.current_user_id if GameState.current_user_id > 0 else 1
+	
 	var body = JSON.stringify({
+		"user_id": active_user_id,
 		"wave": GameState.wave,
 		"score": GameState.sustainability_score,
 		"cleanKwh": GameState.clean_kwh_earned
 	})
+	
 	http_request.request(url, headers, HTTPClient.METHOD_POST, body)
 
+func trigger_game_over():
+	GameState.is_game_over = true
+	Engine.time_scale = 1.0
+	sync_score_to_mysql()
+
 func _on_score_synced(_result, _code, _headers, body):
-	print("Saved to MySQL: ", body.get_string_from_utf8())
-	start_wave_btn.text = "MISSION OVER - Check MySQL"
+	var raw_text = body.get_string_from_utf8()
+	print("MySQL Response: ", raw_text)
+	
+	var res = JSON.parse_string(raw_text)
+	if res and res.has("success") and res.success:
+		# Update lifetime stats in GameState so MainMenu updates instantly!
+		if res.has("high_score"):
+			GameState.user_high_score = res.high_score
+		if res.has("max_wave"):
+			GameState.user_max_wave = res.max_wave
+		if res.has("total_clean_kwh"):
+			GameState.user_total_kwh = res.total_clean_kwh
+			
+		print("✅ Lifetime records updated! New Total kWh: ", GameState.user_total_kwh)
+		
+		if GameState.is_game_over:
+			start_wave_btn.text = "MISSION OVER - Saved to MySQL"
 
 func update_ui():
 	energy_label.text = "⚡ Energy: %d kWh   " % GameState.energy

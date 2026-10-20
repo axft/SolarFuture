@@ -1,0 +1,252 @@
+[gd_scene format=3 uid="uid://c1bwpsft1b73g"]
+
+[ext_resource type="Script" uid="uid://dog4j46a2nvk3" path="res://scripts/MainMenu.gd" id="1_yqorp"]
+[ext_resource type="Texture2D" uid="uid://dwfrlnkwmooer" path="res://assets/MainMenuBackground.png" id="2_0ykhv"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2wh52"]
+atlas = ExtResource("2_0ykhv")
+region = Rect2(0, 0, 960, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ow34m"]
+atlas = ExtResource("2_0ykhv")
+region = Rect2(960, 0, 960, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_l72w3"]
+atlas = ExtResource("2_0ykhv")
+region = Rect2(1920, 0, 960, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_826wr"]
+atlas = ExtResource("2_0ykhv")
+region = Rect2(2880, 0, 960, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ucygd"]
+atlas = ExtResource("2_0ykhv")
+region = Rect2(3840, 0, 960, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mipys"]
+atlas = ExtResource("2_0ykhv")
+region = Rect2(4800, 0, 960, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8a8k8"]
+atlas = ExtResource("2_0ykhv")
+region = Rect2(5760, 0, 960, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7la6k"]
+atlas = ExtResource("2_0ykhv")
+region = Rect2(6720, 0, 960, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2nypq"]
+atlas = ExtResource("2_0ykhv")
+region = Rect2(7680, 0, 960, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bky6r"]
+atlas = ExtResource("2_0ykhv")
+region = Rect2(8640, 0, 960, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_l4mxc"]
+atlas = ExtResource("2_0ykhv")
+region = Rect2(9600, 0, 960, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5faoh"]
+atlas = ExtResource("2_0ykhv")
+region = Rect2(10560, 0, 960, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ptake"]
+atlas = ExtResource("2_0ykhv")
+region = Rect2(11520, 0, 960, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hubol"]
+atlas = ExtResource("2_0ykhv")
+region = Rect2(12480, 0, 960, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8vx4p"]
+atlas = ExtResource("2_0ykhv")
+region = Rect2(13440, 0, 960, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tdapf"]
+atlas = ExtResource("2_0ykhv")
+region = Rect2(14400, 0, 960, 600)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_2clhr"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2wh52")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ow34m")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_l72w3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_826wr")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ucygd")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mipys")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8a8k8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7la6k")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2nypq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bky6r")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_l4mxc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5faoh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ptake")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hubol")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8vx4p")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tdapf")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}]
+
+[node name="MainMenu" type="Control" unique_id=684913593]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_yqorp")
+
+[node name="Background" type="AnimatedSprite2D" parent="." unique_id=1382095921]
+position = Vector2(482, 301)
+sprite_frames = SubResource("SpriteFrames_2clhr")
+autoplay = "default"
+
+[node name="LeaderboardRequest" type="HTTPRequest" parent="." unique_id=1983442735]
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=185973307]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer" unique_id=1816041306]
+layout_mode = 2
+
+[node name="HeaderTitle" type="Label" parent="CenterContainer/VBoxContainer" unique_id=1755783443]
+layout_mode = 2
+text = "⚡ SOLARFUTURE COMMAND HUB"
+
+[node name="Subtitle" type="Label" parent="CenterContainer/VBoxContainer" unique_id=433703242]
+layout_mode = 2
+text = "Clean Energy & Climate Action Operations"
+
+[node name="ProfileCard" type="PanelContainer" parent="CenterContainer/VBoxContainer" unique_id=1627167886]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/VBoxContainer/ProfileCard" unique_id=1363304235]
+layout_mode = 2
+
+[node name="WelcomeLabel" type="Label" parent="CenterContainer/VBoxContainer/ProfileCard/VBoxContainer" unique_id=1628933057]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/VBoxContainer/ProfileCard/VBoxContainer" unique_id=871100511]
+layout_mode = 2
+
+[node name="HighScoreBadge" type="Label" parent="CenterContainer/VBoxContainer/ProfileCard/VBoxContainer/HBoxContainer" unique_id=1000168731]
+layout_mode = 2
+text = "🏆 Best Score: 0"
+
+[node name="MaxWaveBadge" type="Label" parent="CenterContainer/VBoxContainer/ProfileCard/VBoxContainer/HBoxContainer" unique_id=918265535]
+layout_mode = 2
+text = "🌊 Highest Wave: 0"
+
+[node name="TotalKwhBadge" type="Label" parent="CenterContainer/VBoxContainer/ProfileCard/VBoxContainer/HBoxContainer" unique_id=948979096]
+layout_mode = 2
+text = "⚡ Lifetime: 0 kWh"
+
+[node name="MenuButtons" type="VBoxContainer" parent="CenterContainer/VBoxContainer" unique_id=1607548674]
+layout_mode = 2
+
+[node name="DeployBtn" type="Button" parent="CenterContainer/VBoxContainer/MenuButtons" unique_id=65925686]
+layout_mode = 2
+text = "▶️ DEPLOY MISSION "
+
+[node name="LeaderboardBtn" type="Button" parent="CenterContainer/VBoxContainer/MenuButtons" unique_id=1169651833]
+layout_mode = 2
+text = "🏆 GLOBAL LEADERBOARD"
+
+[node name="EncyclopediaBtn" type="Button" parent="CenterContainer/VBoxContainer/MenuButtons" unique_id=13518150]
+layout_mode = 2
+text = "📖 SDG 7 & 13 COMPENDIUM"
+
+[node name="SignOutBtn" type="Button" parent="CenterContainer/VBoxContainer/MenuButtons" unique_id=249211630]
+layout_mode = 2
+text = "🚪 SIGN OUT"
+
+[node name="StatusLabel" type="Label" parent="CenterContainer/VBoxContainer" unique_id=1963048082]
+layout_mode = 2
+
+[node name="EncyclopediaModal" type="PanelContainer" parent="." unique_id=1537407939]
+layout_mode = 0
+offset_left = 455.0
+offset_top = 109.0
+offset_right = 505.0
+offset_bottom = 491.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="EncyclopediaModal" unique_id=1333401166]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="EncyclopediaModal/VBoxContainer" unique_id=2027464229]
+layout_mode = 2
+
+[node name="InfoText" type="RichTextLabel" parent="EncyclopediaModal/VBoxContainer" unique_id=889302641]
+custom_minimum_size = Vector2(0, 320)
+layout_mode = 2
+bbcode_enabled = true
+text = "📖 RENEWABLE ENERGY & CLIMATE ACTION"
+
+[node name="CloseEncyclopediaBtn" type="Button" parent="EncyclopediaModal/VBoxContainer" unique_id=111327441]
+layout_mode = 2
+text = "Close"
+
+[node name="LeaderboardModal" type="PanelContainer" parent="." unique_id=131693848]
+layout_mode = 0
+offset_left = 455.0
+offset_top = 284.0
+offset_right = 505.0
+offset_bottom = 315.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="LeaderboardModal" unique_id=2022076576]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="LeaderboardModal/VBoxContainer" unique_id=1605489097]
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="LeaderboardModal/VBoxContainer" unique_id=78183382]
+layout_mode = 2
+
+[node name="LeaderboardList" type="VBoxContainer" parent="LeaderboardModal/VBoxContainer/ScrollContainer" unique_id=1420665802]
+custom_minimum_size = Vector2(0, 280)
+layout_mode = 2
+
+[node name="CloseLeaderboardBtn" type="Button" parent="LeaderboardModal/VBoxContainer" unique_id=1038029161]
+layout_mode = 2
+text = "Close"

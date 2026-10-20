@@ -89,6 +89,8 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = -1.0
+offset_right = -1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 18
@@ -137,10 +139,10 @@ text = "Build Wind
 "
 
 [node name="PauseBtn" type="Button" parent="UI" unique_id=1622220355]
-offset_left = 830.0
-offset_top = 10.0
-offset_right = 885.0
-offset_bottom = 41.0
+offset_left = 799.0
+offset_top = 11.0
+offset_right = 854.0
+offset_bottom = 42.0
 text = "Pause"
 
 [node name="SpeedBtn" type="Button" parent="UI" unique_id=805916022]
