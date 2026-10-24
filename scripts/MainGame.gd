@@ -1,8 +1,7 @@
 extends Node2D
 
-@onready var path_2d = $Path2D
+@onready var stage_container = $StageContainer
 @onready var http_request = $ScoreSyncRequest
-@onready var map_bg = get_node_or_null("MapBackground")
 
 # --- HUD LABELS ---
 @onready var energy_label = $UI/ColorRect/HBoxContainer/EnergyLabel
@@ -10,12 +9,14 @@ extends Node2D
 @onready var wave_label = $UI/ColorRect/HBoxContainer/WaveLabel
 @onready var score_label = $UI/ColorRect/HBoxContainer/ScoreLabel
 
-# --- BOTTOM CONTROLS ---
+# --- CONTROL BUTTONS ---
 @onready var start_wave_btn = $UI/StartWaveBtn
-@onready var build_solar_btn = $UI/BuildSolarBtn
-@onready var build_wind_btn = get_node_or_null("UI/BuildWindBtn")
 @onready var pause_btn = get_node_or_null("UI/PauseBtn")
 @onready var speed_btn = get_node_or_null("UI/SpeedBtn")
+
+# Pre-existing individual build buttons in your scene
+@onready var build_solar_btn = get_node_or_null("UI/BuildSolarBtn")
+@onready var build_wind_btn = get_node_or_null("UI/BuildWindBtn")
 
 # --- TOWER INSPECTOR UI ---
 @onready var tower_menu = get_node_or_null("UI/TowerMenu")
@@ -26,40 +27,51 @@ extends Node2D
 @onready var upgrade_spd_btn = get_node_or_null("UI/TowerMenu/VBoxContainer/UpgradeSpdBtn")
 @onready var close_menu_btn = get_node_or_null("UI/TowerMenu/VBoxContainer/CloseBtn")
 
-# --- SCENE PRELOADS ---
-var solar_tower_scene: PackedScene = preload("res://scenes/TowerSolar.tscn")
-var wind_tower_scene: PackedScene = preload("res://scenes/TowerWind.tscn")
+# Tower Scene Fallbacks
+# --- TOWER SCENES REGISTRY ---
+var tower_scenes: Dictionary = {
+	"SOLAR": preload("res://scenes/TowerSolar.tscn"),
+	"WIND": preload("res://scenes/TowerWind.tscn") if ResourceLoader.exists("res://scenes/TowerWind.tscn") else preload("res://scenes/TowerSolar.tscn"),
+	"MYCELIUM": preload("res://scenes/TowerMycelium.tscn") if ResourceLoader.exists("res://scenes/TowerMycelium.tscn") else preload("res://scenes/TowerSolar.tscn"),
+	"GEOTHERMAL": preload("res://scenes/TowerGeothermal.tscn") if ResourceLoader.exists("res://scenes/TowerGeothermal.tscn") else preload("res://scenes/TowerSolar.tscn"),
+	"SUBSTATION": preload("res://scenes/TowerSubstation.tscn") if ResourceLoader.exists("res://scenes/TowerSubstation.tscn") else preload("res://scenes/TowerSolar.tscn"),
+	"SPRINKLER": preload("res://scenes/TowerSprinkler.tscn") if ResourceLoader.exists("res://scenes/TowerSprinkler.tscn") else preload("res://scenes/TowerSolar.tscn"),
+	"SAPLING": preload("res://scenes/TowerSapling.tscn") if ResourceLoader.exists("res://scenes/TowerSapling.tscn") else preload("res://scenes/TowerSolar.tscn"),
+}
 
-var smog_scene: PackedScene = preload("res://scenes/SmogEnemy.tscn")
-var methane_scene: PackedScene = preload("res://scenes/EnemyMethane.tscn") if ResourceLoader.exists("res://scenes/EnemyMethane.tscn") else smog_scene
-var soot_scene: PackedScene = preload("res://scenes/EnemySoot.tscn") if ResourceLoader.exists("res://scenes/EnemySoot.tscn") else smog_scene
-var boss_scene: PackedScene = preload("res://scenes/EnemyBoss.tscn") if ResourceLoader.exists("res://scenes/EnemyBoss.tscn") else smog_scene
+var enemy_scenes: Dictionary = {}
+var current_path_2d: Path2D = null
 
-# --- RUNTIME STATE ---
 var selected_tower: Node2D = null
 var enemies_to_spawn: int = 6
 var enemies_spawned: int = 0
 var spawn_timer: float = 0.0
 var game_speed: float = 1.0
 
-# Victory Popup Modal
 var victory_modal: PanelContainer
 
 func _ready():
 	Engine.time_scale = 1.0
-	
-	# Load Selected Stage Settings
-	var stage_cfg = GameState.STAGES.get(GameState.selected_stage_id, GameState.STAGES[1])
-	if map_bg and "color" in map_bg:
-		map_bg.color = stage_cfg.bg_color
 
+	# 1. Load active stage scene (Stage1.tscn)
+	load_active_stage()
+
+	# 2. Preload enemies
+	load_enemy_scenes()
+
+	# 3. CONNECT ALL BUILD BUTTONS (Both existing buttons and new tray)
+	if build_solar_btn:
+		build_solar_btn.pressed.connect(func(): on_tower_select_clicked("SOLAR"))
+	if build_wind_btn:
+		build_wind_btn.pressed.connect(func(): on_tower_select_clicked("WIND"))
+		
+	build_tower_selection_bar()
+
+	# 4. Connect Core Buttons
 	start_wave_btn.pressed.connect(_on_start_wave_pressed)
-	build_solar_btn.pressed.connect(_on_build_solar_pressed)
-	
-	if build_wind_btn: build_wind_btn.pressed.connect(_on_build_wind_pressed)
 	if pause_btn: pause_btn.pressed.connect(_on_pause_pressed)
 	if speed_btn: speed_btn.pressed.connect(_on_speed_pressed)
-		
+
 	if tower_menu:
 		tower_menu.visible = false
 		if close_menu_btn: close_menu_btn.pressed.connect(deselect_tower)
@@ -74,220 +86,95 @@ func _ready():
 
 	http_request.request_completed.connect(_on_score_synced)
 	update_ui()
+	print("🎮 MainGame initialized successfully.")
+
+# --- LOAD ACTIVE STAGE SCENE ---
+func load_active_stage():
+	var stage_num = GameState.selected_stage_id
+	var stage_path = "res://scenes/stages/Stage%d.tscn" % stage_num
 	
-	if has_node("Path2D/RoadVisual") and $Path2D.curve:
-		$Path2D/RoadVisual.points = $Path2D.curve.get_baked_points()
-
-func _process(delta: float):
-	if GameState.is_paused or GameState.is_game_over:
-		return
-
-	if GameState.is_wave_active:
-		spawn_timer += delta
-		if spawn_timer >= 1.2 and enemies_spawned < enemies_to_spawn:
-			spawn_enemy()
-			spawn_timer = 0.0
-			enemies_spawned += 1
-
-	if is_instance_valid(selected_tower) and tower_menu and tower_menu.visible:
-		update_tower_stats_text()
-
-# --- ENEMY SPAWNING ---
-func spawn_enemy():
-	var enemy_to_spawn: PackedScene = smog_scene
+	if not FileAccess.file_exists(stage_path):
+		stage_path = "res://scenes/stages/Stage1.tscn"
+		
+	var stage_res = load(stage_path)
+	var stage_inst = stage_res.instantiate()
+	$StageContainer.add_child(stage_inst)
 	
-	if GameState.wave == 5:
-		enemy_to_spawn = boss_scene if enemies_spawned == 0 else [smog_scene, methane_scene].pick_random()
-	elif GameState.wave >= 4:
-		var roll = randf()
-		if roll < 0.35: enemy_to_spawn = methane_scene
-		elif roll < 0.70: enemy_to_spawn = soot_scene
-		else: enemy_to_spawn = smog_scene
-	elif GameState.wave >= 2:
-		enemy_to_spawn = methane_scene if randf() < 0.45 else smog_scene
-
-	var enemy = enemy_to_spawn.instantiate()
-	enemy.add_to_group("enemies")
-	enemy.reached_end.connect(_on_enemy_reached_end)
-	enemy.defeated.connect(_on_enemy_defeated)
-	path_2d.add_child(enemy)
-
-func _on_enemy_reached_end(damage_amount: int = 15):
-	GameState.eco_health -= damage_amount
-	update_ui()
-	if GameState.eco_health <= 0 and not GameState.is_game_over:
-		trigger_game_over()
+	current_path_2d = stage_inst.find_child("Path2D", true, false)
+	if current_path_2d:
+		print("✅ Found Path2D in ", stage_path)
 	else:
-		check_wave_status()
+		print("⚠️ Path2D not found inside ", stage_path)
 
-func _on_enemy_defeated(enemy):
-	GameState.energy += enemy.bounty_reward
-	GameState.sustainability_score += enemy.eco_score_reward
-	GameState.clean_kwh_earned += enemy.bounty_reward
-	GameState.enemies_defeated += 1
-	GameState.co2_mitigated_kg += enemy.co2_reward if "co2_reward" in enemy else 18
-	update_ui()
-	check_wave_status()
+func load_enemy_scenes():
+	var paths = {
+		"smog": "res://scenes/SmogEnemy.tscn",
+		"methane": "res://scenes/EnemyMethane.tscn",
+		"soot": "res://scenes/EnemySoot.tscn",
+		"boss": "res://scenes/EnemyBoss.tscn",
+		"styrofoam": "res://scenes/EnemyStyrofoam.tscn",
+		"ewaste": "res://scenes/EnemyEWaste.tscn",
+		"microplastics": "res://scenes/EnemyMicroplastics.tscn",
+		"garbage": "res://scenes/EnemyGarbagePile.tscn"
+	}
+	var fallback = preload("res://scenes/SmogEnemy.tscn")
+	for k in paths:
+		if FileAccess.file_exists(paths[k]):
+			enemy_scenes[k] = load(paths[k])
+		else:
+			enemy_scenes[k] = fallback
 
-func check_wave_status():
-	await get_tree().process_frame
-	if GameState.is_game_over: return
-		
-	var active_enemies = get_tree().get_nodes_in_group("enemies")
-	if enemies_spawned >= enemies_to_spawn and active_enemies.size() == 0:
-		GameState.is_wave_active = false
-		
-		# Check Stage Victory Objective
-		var target_wave = GameState.STAGES[GameState.selected_stage_id].target_wave
-		if GameState.wave >= target_wave and not GameState.is_endless_mode:
-			trigger_stage_victory()
-			return
+# --- TOWER SELECTION TRAY ---
+func build_tower_selection_bar():
+	# If player has old buttons in scene, keep them and add remaining towers
+	var bar_scroll = ScrollContainer.new()
+	bar_scroll.position = Vector2(160, 545)
+	bar_scroll.custom_minimum_size = Vector2(550, 48)
+	bar_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	$UI.add_child(bar_scroll)
 
-		GameState.wave += 1
-		GameState.energy += 100
-		enemies_spawned = 0
-		enemies_to_spawn += 3
-		start_wave_btn.disabled = false
-		start_wave_btn.text = "▶️ Start Wave %d" % GameState.wave
-		update_ui()
+	var hbox = HBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 6)
+	bar_scroll.add_child(hbox)
 
-# --- STAGE VICTORY & SCORE TRACKING CONFIRMATION ---
-func trigger_stage_victory():
-	var cfg = GameState.STAGES[GameState.selected_stage_id]
-	GameState.energy += cfg.bonus_kwh
-	GameState.clean_kwh_earned += cfg.bonus_kwh
-	GameState.sustainability_score += 200
-	
-	# Save Score to MySQL Immediately!
-	sync_score_to_mysql()
-	
-	show_victory_modal()
+	for type in GameState.TOWER_CATALOG:
+		var cfg = GameState.TOWER_CATALOG[type]
+		var btn = Button.new()
+		btn.text = "%s (%d)" % [cfg.name.split(" ")[0], cfg.cost]
+		btn.custom_minimum_size = Vector2(95, 36)
+		btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		btn.pressed.connect(func(): on_tower_select_clicked(type))
+		hbox.add_child(btn)
 
-func show_victory_modal():
-	victory_modal = PanelContainer.new()
-	victory_modal.custom_minimum_size = Vector2(480, 320)
-	victory_modal.position = Vector2(240, 140)
-	
-	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color("#102231")
-	sb.border_color = Color("#2ecc71")
-	sb.set_corner_radius_all(14)
-	sb.border_width_bottom = 6
-	sb.set_border_width_all(2)
-	sb.content_margin_top = 18
-	sb.content_margin_bottom = 18
-	sb.content_margin_left = 18
-	sb.content_margin_right = 18
-	victory_modal.add_theme_stylebox_override("panel", sb)
-	$UI.add_child(victory_modal)
-
-	var vbox = VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 10)
-	victory_modal.add_child(vbox)
-
-	var title = Label.new()
-	title.text = "🏆 MISSION ACCOMPLISHED! 🏆"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 20)
-	title.add_theme_color_override("font_color", Color("#2ecc71"))
-	vbox.add_child(title)
-
-	var sub = Label.new()
-	sub.text = "Regional Biosphere Protected!"
-	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	sub.add_theme_font_size_override("font_size", 11)
-	sub.add_theme_color_override("font_color", Color("#bdc3c7"))
-	vbox.add_child(sub)
-
-	var stats_box = Label.new()
-	stats_box.text = "Score: %d pts  |  Clean Energy: %d kWh\nCO₂ Mitigated: %d kg  |  Smog Clouds Filtered: %d" % [
-		GameState.sustainability_score, GameState.clean_kwh_earned,
-		GameState.co2_mitigated_kg, GameState.enemies_defeated
-	]
-	stats_box.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	stats_box.add_theme_font_size_override("font_size", 13)
-	stats_box.add_theme_color_override("font_color", Color("#f1c40f"))
-	vbox.add_child(stats_box)
-
-	var btn_hbox = HBoxContainer.new()
-	btn_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	btn_hbox.add_theme_constant_override("separation", 14)
-	vbox.add_child(btn_hbox)
-
-	var return_btn = Button.new()
-	return_btn.text = "🏠 Command Hub"
-	return_btn.custom_minimum_size = Vector2(170, 42)
-	return_btn.pressed.connect(func():
-		Engine.time_scale = 1.0
-		get_tree().change_scene_to_file("res://scenes/MainMenu.tscn")
-	)
-	btn_hbox.add_child(return_btn)
-
-	var endless_btn = Button.new()
-	endless_btn.text = "🌊 Endless Mode"
-	endless_btn.custom_minimum_size = Vector2(170, 42)
-	endless_btn.pressed.connect(func():
-		GameState.is_endless_mode = true
-		victory_modal.queue_free()
-		GameState.wave += 1
-		enemies_spawned = 0
-		enemies_to_spawn += 3
-		start_wave_btn.disabled = false
-		start_wave_btn.text = "▶️ Wave %d (Endless)" % GameState.wave
-		update_ui()
-	)
-	btn_hbox.add_child(endless_btn)
-
-# --- CONTROLS ---
-func _on_start_wave_pressed():
+func on_tower_select_clicked(type: String):
+	print("🔘 Clicked build button for: ", type)
 	if GameState.is_paused:
-		show_warning_toast("⚠️ Operation paused! Unpause to start wave.")
+		show_warning_toast("⚠️ Game paused! Unpause to build.")
 		return
-	if not GameState.is_wave_active:
-		GameState.is_wave_active = true
-		start_wave_btn.disabled = true
+		
+	var cost = GameState.TOWER_CATALOG[type].cost
+	if GameState.energy < cost:
+		show_warning_toast("⚡ Insufficient kWh! Need %d." % cost)
+		return
 
-func _on_pause_pressed():
-	if GameState.is_game_over: return
-	GameState.is_paused = !GameState.is_paused
-	if pause_btn: pause_btn.text = "▶️ Resume" if GameState.is_paused else "⏸️ Pause"
-	if GameState.is_paused:
+	if GameState.selected_build_type == type:
 		cancel_placement()
-		Engine.time_scale = 1.0
 	else:
-		Engine.time_scale = game_speed
-
-func _on_speed_pressed():
-	if GameState.is_paused: return
-	game_speed = 2.0 if game_speed == 1.0 else 1.0
-	if speed_btn: speed_btn.text = "⏩ 2x" if game_speed == 2.0 else "▶️ 1x"
-	Engine.time_scale = game_speed
-
-func _on_build_solar_pressed():
-	if GameState.is_paused: return
-	if GameState.energy < 100:
-		show_warning_toast("⚡ Insufficient kWh for Solar Array!")
-		return
-	GameState.selected_build_type = "" if GameState.selected_build_type == "SOLAR" else "SOLAR"
-	deselect_tower()
-
-func _on_build_wind_pressed():
-	if GameState.is_paused: return
-	if GameState.energy < 150:
-		show_warning_toast("⚡ Insufficient kWh for Wind Turbine!")
-		return
-	GameState.selected_build_type = "" if GameState.selected_build_type == "WIND" else "WIND"
-	deselect_tower()
+		GameState.selected_build_type = type
+		print("🎯 Placement mode ACTIVE for: ", type)
+		deselect_tower()
 
 func cancel_placement():
+	print("🚫 Placement canceled.")
 	GameState.selected_build_type = ""
 
+# --- INPUT HANDLING ---
 func _input(event):
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
 		if GameState.selected_build_type != "": cancel_placement()
 		else: deselect_tower()
 		return
-			
+		
 	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
 		if GameState.selected_build_type != "": cancel_placement()
 		else: deselect_tower()
@@ -295,44 +182,64 @@ func _input(event):
 
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var hovered = get_viewport().gui_get_hovered_control()
-		if hovered != null and $UI.is_ancestor_of(hovered): return
-		if GameState.is_paused: return
+		# Ignore click only if clicking directly on a button inside $UI
+		if hovered != null and $UI.is_ancestor_of(hovered):
+			return
+			
+		if GameState.is_paused: 
+			return
 
+		# PLACING TOWER
 		if GameState.selected_build_type != "":
+			print("🖱️ Left-click on map! Placing tower of type: ", GameState.selected_build_type)
 			handle_tower_placement()
 			return
 
+		# INSPECTING TOWER
 		check_tower_click(get_global_mouse_position())
 
+# --- PLACEMENT WITH FORCED Z-INDEX ---
 func handle_tower_placement():
-	var spawn_pos = get_global_mouse_position()
-	if GameState.selected_build_type == "SOLAR" and GameState.energy >= 100:
-		GameState.energy -= 100
-		var tower = solar_tower_scene.instantiate()
-		tower.name = "Solar Array"
-		tower.global_position = spawn_pos
+	var cfg = GameState.TOWER_CATALOG.get(GameState.selected_build_type, null)
+	if not cfg: 
+		print("❌ Error: Invalid tower type: ", GameState.selected_build_type)
+		return
+
+	if GameState.energy >= cfg.cost:
+		GameState.energy -= cfg.cost
+		
+		# 1. Grab the specific scene for this tower type
+		var scene_to_spawn: PackedScene = tower_scenes.get(GameState.selected_build_type, tower_scenes["SOLAR"])
+		var tower = scene_to_spawn.instantiate()
+		
+		# 2. Configure position and guarantee high Z-index so it renders in front of the map
+		tower.z_index = 20
+		tower.name = cfg.name
+		tower.global_position = get_global_mouse_position()
+		
+		# 3. Add to the game world
 		add_child(tower)
+		
+		# If the scene uses BaseTower script, initialize its properties
+		if tower.has_method("setup_tower"):
+			tower.setup_tower(GameState.selected_build_type)
+			
+		print("🏗️ SPAWNED %s at %s" % [cfg.name, tower.global_position])
 		cancel_placement()
 		update_ui()
-	elif GameState.selected_build_type == "WIND" and GameState.energy >= 150:
-		GameState.energy -= 150
-		var tower = wind_tower_scene.instantiate()
-		tower.name = "Wind Turbine"
-		tower.global_position = spawn_pos
-		add_child(tower)
-		cancel_placement()
-		update_ui()
+	else:
+		show_warning_toast("⚡ Need %d kWh for %s!" % [cfg.cost, cfg.name])
 
 func check_tower_click(click_pos: Vector2):
 	var towers = get_tree().get_nodes_in_group("towers")
-	var closest_tower: Node2D = null
-	var min_distance: float = 40.0
-	for tower in towers:
-		var dist = tower.global_position.distance_to(click_pos)
-		if dist < min_distance:
-			min_distance = dist
-			closest_tower = tower
-	if closest_tower != null: select_tower(closest_tower)
+	var closest: Node2D = null
+	var min_d: float = 40.0
+	for t in towers:
+		var d = t.global_position.distance_to(click_pos)
+		if d < min_d:
+			min_d = d
+			closest = t
+	if closest: select_tower(closest)
 	else: deselect_tower()
 
 func select_tower(tower: Node2D):
@@ -398,7 +305,170 @@ func _draw():
 		draw_arc(tower_pos, r, 0.0, TAU, 64, Color(0.2, 0.7, 1.0, 0.8), 2.0)
 		draw_arc(tower_pos, 28.0, 0.0, TAU, 32, Color(1.0, 0.9, 0.2, 0.95), 3.0)
 
-func show_warning_toast(message: String):
+# --- PROCESS & SPAWNING ---
+func _process(delta: float):
+	if GameState.is_paused or GameState.is_game_over: return
+
+	if GameState.is_wave_active:
+		spawn_timer += delta
+		if spawn_timer >= 1.2 and enemies_spawned < enemies_to_spawn:
+			spawn_enemy_for_stage()
+			spawn_timer = 0.0
+			enemies_spawned += 1
+
+	if is_instance_valid(selected_tower) and tower_menu and tower_menu.visible:
+		update_tower_stats_text()
+
+func spawn_enemy_for_stage():
+	if not current_path_2d: return
+
+	var enemy_key = "smog"
+	if GameState.selected_stage_id == 1:
+		if GameState.wave == 5 and enemies_spawned == 0: enemy_key = "boss"
+		elif GameState.wave >= 3: enemy_key = ["smog", "methane", "styrofoam"].pick_random()
+		else: enemy_key = "smog"
+	elif GameState.selected_stage_id == 2:
+		if GameState.wave == 8 and enemies_spawned == 0: enemy_key = "garbage"
+		elif GameState.wave >= 4: enemy_key = ["soot", "ewaste", "styrofoam"].pick_random()
+		else: enemy_key = ["smog", "methane"].pick_random()
+	elif GameState.selected_stage_id == 3:
+		if GameState.wave == 10 and enemies_spawned == 0: enemy_key = "boss"
+		elif GameState.wave >= 5: enemy_key = ["garbage", "microplastics", "ewaste"].pick_random()
+		else: enemy_key = ["microplastics", "soot", "styrofoam"].pick_random()
+
+	var enemy = enemy_scenes[enemy_key].instantiate()
+	enemy.reached_end.connect(_on_enemy_reached_end)
+	enemy.defeated.connect(_on_enemy_defeated)
+	current_path_2d.add_child(enemy)
+
+func _on_enemy_reached_end(dmg: int = 15):
+	GameState.eco_health -= dmg
+	update_ui()
+	if GameState.eco_health <= 0 and not GameState.is_game_over:
+		trigger_game_over()
+	else:
+		check_wave_status()
+
+func _on_enemy_defeated(enemy):
+	GameState.energy += enemy.bounty_reward
+	GameState.sustainability_score += enemy.eco_score_reward
+	GameState.clean_kwh_earned += enemy.bounty_reward
+	GameState.enemies_defeated += 1
+	GameState.co2_mitigated_kg += enemy.co2_reward if "co2_reward" in enemy else 18
+	update_ui()
+	check_wave_status()
+
+func check_wave_status():
+	await get_tree().process_frame
+	if GameState.is_game_over: return
+
+	var active = get_tree().get_nodes_in_group("enemies")
+	if enemies_spawned >= enemies_to_spawn and active.size() == 0:
+		GameState.is_wave_active = false
+
+		var target_wave = GameState.STAGES[GameState.selected_stage_id].target_wave
+		if GameState.wave >= target_wave and not GameState.is_endless_mode:
+			trigger_stage_victory()
+			return
+
+		GameState.wave += 1
+		GameState.energy += 100
+		enemies_spawned = 0
+		enemies_to_spawn += 3
+		start_wave_btn.disabled = false
+		start_wave_btn.text = "▶️ Start Wave %d" % GameState.wave
+		update_ui()
+
+func trigger_stage_victory():
+	var cfg = GameState.STAGES[GameState.selected_stage_id]
+	GameState.energy += cfg.bonus_kwh
+	GameState.clean_kwh_earned += cfg.bonus_kwh
+	GameState.sustainability_score += 250
+	sync_score_to_mysql()
+	show_victory_modal()
+
+func show_victory_modal():
+	victory_modal = PanelContainer.new()
+	victory_modal.custom_minimum_size = Vector2(460, 300)
+	victory_modal.position = Vector2(250, 150)
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color("#102231")
+	sb.border_color = Color("#2ecc71")
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(14)
+	sb.content_margin_left = 16
+	sb.content_margin_right = 16
+	sb.content_margin_top = 16
+	sb.content_margin_bottom = 16
+	victory_modal.add_theme_stylebox_override("panel", sb)
+	$UI.add_child(victory_modal)
+
+	var vb = VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 10)
+	victory_modal.add_child(vb)
+
+	var title = Label.new()
+	title.text = "🏆 STAGE %d COMPLETED! 🏆" % GameState.selected_stage_id
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 20)
+	title.add_theme_color_override("font_color", Color("#2ecc71"))
+	vb.add_child(title)
+
+	var sub = Label.new()
+	sub.text = "Regional biosphere secured! Telemetry logged to database."
+	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sub.add_theme_font_size_override("font_size", 12)
+	vb.add_child(sub)
+
+	var btn_row = HBoxContainer.new()
+	btn_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	btn_row.add_theme_constant_override("separation", 12)
+	vb.add_child(btn_row)
+
+	var hub_btn = Button.new()
+	hub_btn.text = "🏠 Command Hub"
+	hub_btn.custom_minimum_size = Vector2(150, 40)
+	hub_btn.pressed.connect(func(): SceneTransition.change_scene("res://scenes/MainMenu.tscn", 0.4))
+	btn_row.add_child(hub_btn)
+
+	var end_btn = Button.new()
+	end_btn.text = "🌊 Endless Mode"
+	end_btn.custom_minimum_size = Vector2(150, 40)
+	end_btn.pressed.connect(func():
+		GameState.is_endless_mode = true
+		victory_modal.queue_free()
+		GameState.wave += 1
+		enemies_spawned = 0
+		enemies_to_spawn += 3
+		start_wave_btn.disabled = false
+		start_wave_btn.text = "▶️ Wave %d (Endless)" % GameState.wave
+		update_ui()
+	)
+	btn_row.add_child(end_btn)
+
+func _on_start_wave_pressed():
+	if GameState.is_paused: return
+	if not GameState.is_wave_active:
+		GameState.is_wave_active = true
+		start_wave_btn.disabled = true
+
+func _on_pause_pressed():
+	if GameState.is_game_over: return
+	GameState.is_paused = !GameState.is_paused
+	if pause_btn: pause_btn.text = "▶️ Resume" if GameState.is_paused else "⏸️ Pause"
+	if GameState.is_paused:
+		cancel_placement()
+		Engine.time_scale = 1.0
+	else:
+		Engine.time_scale = game_speed
+
+func _on_speed_pressed():
+	if GameState.is_paused: return
+	game_speed = 2.0 if game_speed == 1.0 else 1.0
+	if speed_btn: speed_btn.text = "⏩ 2x" if game_speed == 2.0 else "▶️ 1x"
+	Engine.time_scale = game_speed
+
+func show_warning_toast(msg: String):
 	var toast = $UI.get_node_or_null("ToastPopup")
 	if not toast:
 		toast = Label.new()
@@ -407,45 +477,33 @@ func show_warning_toast(message: String):
 		toast.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		toast.custom_minimum_size = Vector2(360, 40)
 		toast.position = Vector2(300, 65)
-		
 		var sb = StyleBoxFlat.new()
 		sb.bg_color = Color(0.8, 0.2, 0.2, 0.9)
 		sb.set_corner_radius_all(6)
-		sb.border_width_bottom = 2
-		sb.border_color = Color(1.0, 0.4, 0.4)
 		toast.add_theme_stylebox_override("normal", sb)
 		toast.add_theme_color_override("font_color", Color.WHITE)
 		toast.add_theme_font_size_override("font_size", 14)
 		$UI.add_child(toast)
 
-	toast.text = message
+	toast.text = msg
 	toast.modulate.a = 0.0
-	toast.scale = Vector2(0.8, 0.8)
-	toast.pivot_offset = toast.size / 2.0
 	toast.visible = true
+	var tw = create_tween()
+	tw.tween_property(toast, "modulate:a", 1.0, 0.15)
+	tw.tween_interval(1.5)
+	tw.tween_property(toast, "modulate:a", 0.0, 0.25)
+	tw.tween_callback(func(): toast.visible = false)
 
-	var tween = create_tween()
-	tween.tween_property(toast, "modulate:a", 1.0, 0.15)
-	tween.parallel().tween_property(toast, "scale", Vector2(1.0, 1.0), 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tween.tween_interval(1.5)
-	tween.tween_property(toast, "modulate:a", 0.0, 0.25)
-	tween.tween_callback(func(): toast.visible = false)
-
-# --- DATABASE PERSISTENCE ---
 func sync_score_to_mysql():
 	var url = "http://localhost/solarfuture/api/save_score.php"
 	var headers = ["Content-Type: application/json"]
-	
-	# Send user_id so PHP knows which account to credit (falls back to 1 for quick F6 testing)
 	var active_user_id = GameState.current_user_id if GameState.current_user_id > 0 else 1
-	
 	var body = JSON.stringify({
 		"user_id": active_user_id,
 		"wave": GameState.wave,
 		"score": GameState.sustainability_score,
 		"cleanKwh": GameState.clean_kwh_earned
 	})
-	
 	http_request.request(url, headers, HTTPClient.METHOD_POST, body)
 
 func trigger_game_over():
@@ -454,23 +512,11 @@ func trigger_game_over():
 	sync_score_to_mysql()
 
 func _on_score_synced(_result, _code, _headers, body):
-	var raw_text = body.get_string_from_utf8()
-	print("MySQL Response: ", raw_text)
-	
-	var res = JSON.parse_string(raw_text)
+	var res = JSON.parse_string(body.get_string_from_utf8())
 	if res and res.has("success") and res.success:
-		# Update lifetime stats in GameState so MainMenu updates instantly!
-		if res.has("high_score"):
-			GameState.user_high_score = res.high_score
-		if res.has("max_wave"):
-			GameState.user_max_wave = res.max_wave
-		if res.has("total_clean_kwh"):
-			GameState.user_total_kwh = res.total_clean_kwh
-			
-		print("✅ Lifetime records updated! New Total kWh: ", GameState.user_total_kwh)
-		
-		if GameState.is_game_over:
-			start_wave_btn.text = "MISSION OVER - Saved to MySQL"
+		if res.has("high_score"): GameState.user_high_score = res.high_score
+		if res.has("max_wave"): GameState.user_max_wave = res.max_wave
+		if res.has("total_clean_kwh"): GameState.user_total_kwh = res.total_clean_kwh
 
 func update_ui():
 	energy_label.text = "⚡ Energy: %d kWh   " % GameState.energy

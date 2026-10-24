@@ -2,5 +2,5 @@
 
 [ext_resource type="Script" uid="uid://c5ctkv71br3d2" path="res://scripts/DeathEffect.gd" id="1_6xq5i"]
 
-[node name="DeathEffect" type="Node2D" unique_id=1590141265]
+[node name="DeathEffect" type="Sprite2D" unique_id=1410191438]
 script = ExtResource("1_6xq5i")

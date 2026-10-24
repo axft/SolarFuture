@@ -1,0 +1,100 @@
+[gd_scene format=3 uid="uid://djjdi1cavcrko"]
+
+[ext_resource type="Script" uid="uid://c0nornyyb5ak0" path="res://scripts/TowerSapling.gd" id="1_idbce"]
+[ext_resource type="Texture2D" uid="uid://dojhuslifjmxq" path="res://assets/tower_sapling_attack.png" id="2_idbce"]
+[ext_resource type="Texture2D" uid="uid://dbs2n366khque" path="res://assets/tower_sapling_idle.png" id="3_x3sw7"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xnd3a"]
+atlas = ExtResource("2_idbce")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_h308r"]
+atlas = ExtResource("2_idbce")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jw4bu"]
+atlas = ExtResource("2_idbce")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mle5a"]
+atlas = ExtResource("2_idbce")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8guae"]
+atlas = ExtResource("2_idbce")
+region = Rect2(192, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3m5ap"]
+atlas = ExtResource("2_idbce")
+region = Rect2(240, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yvwsx"]
+atlas = ExtResource("3_x3sw7")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_477br"]
+atlas = ExtResource("3_x3sw7")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_a5ppn"]
+atlas = ExtResource("3_x3sw7")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_2clhr"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xnd3a")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_h308r")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jw4bu")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mle5a")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8guae")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3m5ap")
+}],
+"loop": 0,
+"name": &"attack",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yvwsx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_477br")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_a5ppn")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 5.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_2clhr"]
+radius = 160.0
+
+[node name="TowerSapling" type="Node2D" unique_id=132440079]
+script = ExtResource("1_idbce")
+damage = 22.0
+fire_rate = 1.2
+range_radius = 160.0
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=759434891]
+sprite_frames = SubResource("SpriteFrames_2clhr")
+animation = &"idle"
+autoplay = "idle"
+
+[node name="RangeArea" type="Area2D" parent="." unique_id=753369037]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RangeArea" unique_id=157124272]
+shape = SubResource("CircleShape2D_2clhr")

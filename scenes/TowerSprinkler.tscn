@@ -1,0 +1,86 @@
+[gd_scene format=3 uid="uid://d3usb2eig8r15"]
+
+[ext_resource type="Script" uid="uid://tjbeyhuk0mi0" path="res://scripts/TowerSprinkler.gd" id="1_l5r1e"]
+[ext_resource type="Texture2D" uid="uid://cfiod0ao8jp2k" path="res://assets/tower_sprinkler_attack.png" id="2_l5r1e"]
+[ext_resource type="Texture2D" uid="uid://ug530gmox1h4" path="res://assets/tower_sprinkler_idle.png" id="3_7a3va"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_747ob"]
+atlas = ExtResource("2_l5r1e")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_iwy5s"]
+atlas = ExtResource("2_l5r1e")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bl8oh"]
+atlas = ExtResource("2_l5r1e")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_x2s3t"]
+atlas = ExtResource("2_l5r1e")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4o0et"]
+atlas = ExtResource("2_l5r1e")
+region = Rect2(192, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_e8c20"]
+atlas = ExtResource("2_l5r1e")
+region = Rect2(240, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0dxfq"]
+atlas = ExtResource("3_7a3va")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_2clhr"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_747ob")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_iwy5s")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bl8oh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_x2s3t")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4o0et")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_e8c20")
+}],
+"loop": 0,
+"name": &"attack",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0dxfq")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 5.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_2clhr"]
+radius = 160.0
+
+[node name="TowerSprinkler" type="Node2D" unique_id=132440079]
+script = ExtResource("1_l5r1e")
+damage = 22.0
+fire_rate = 1.2
+range_radius = 160.0
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=759434891]
+sprite_frames = SubResource("SpriteFrames_2clhr")
+animation = &"attack"
+autoplay = "idle"
+
+[node name="RangeArea" type="Area2D" parent="." unique_id=753369037]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RangeArea" unique_id=157124272]
+shape = SubResource("CircleShape2D_2clhr")

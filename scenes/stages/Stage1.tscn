@@ -1,0 +1,61 @@
+[gd_scene format=3 uid="uid://c37f8rnps4d0d"]
+
+[ext_resource type="Texture2D" uid="uid://cmflj7tcifg1x" path="res://assets/map_grass1.png" id="1_btcqy"]
+[ext_resource type="Texture2D" uid="uid://c57pwccxv8gyr" path="res://assets/map_grass2.png" id="2_p0t3n"]
+[ext_resource type="Texture2D" uid="uid://bfxv0ymer2f0s" path="res://assets/map_grass3.png" id="3_2sadn"]
+[ext_resource type="Texture2D" uid="uid://b01dwpsve84k0" path="res://assets/map_grass4.png" id="4_bol2i"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_apyld"]
+atlas = ExtResource("1_btcqy")
+region = Rect2(0, 0, 960, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_br0ip"]
+atlas = ExtResource("2_p0t3n")
+region = Rect2(0, 0, 960, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_popwr"]
+atlas = ExtResource("3_2sadn")
+region = Rect2(0, 0, 960, 600)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bplcq"]
+atlas = ExtResource("4_bol2i")
+region = Rect2(0, 0, 960, 600)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_xej52"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_apyld")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_br0ip")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_popwr")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bplcq")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="Curve2D" id="Curve2D_4y8ak"]
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, -56, 217, 0, 0, 0, 0, 50, 219, 0, 0, 0, 0, 160, 224, 0, 0, 0, 0, 262, 229, 0, 0, 0, 0, 333, 232, 0, 0, 0, 0, 386, 227, 0, 0, 0, 0, 438, 204, 0, 0, 0, 0, 445, 137, 0, 0, 0, 0, 408, 108, 0, 0, 0, 0, 354, 106, 0, 0, 0, 0, 316, 116, 0, 0, 0, 0, 292, 160, 0, 0, 0, 0, 296, 200, 0, 0, 0, 0, 310, 235, 0, 0, 0, 0, 316, 284, 0, 0, 0, 0, 313, 330, 0, 0, 0, 0, 310, 380, 0, 0, 0, 0, 296, 418, 0, 0, 0, 0, 260, 449, 0, 0, 0, 0, 205, 440, 0, 0, 0, 0, 173, 409, 0, 0, 0, 0, 175, 366, 0, 0, 0, 0, 196, 336, 0, 0, 0, 0, 251, 325, 0, 0, 0, 0, 292, 329, 0, 0, 0, 0, 345, 341, 0, 0, 0, 0, 406, 344, 0, 0, 0, 0, 438, 341, 0, 0, 0, 0, 478, 344, 0, 0, 0, 0, 530, 348, 0, 0, 0, 0, 559, 338, 0, 0, 0, 0, 585, 314, 0, 0, 0, 0, 606, 271, 0, 0, 0, 0, 631, 231, 0, 0, 0, 0, 666, 219, 0, 0, 0, 0, 703, 235, 0, 0, 0, 0, 723, 268, 0, 0, 0, 0, 732, 313, 0, 0, 0, 0, 738, 364, 0, 0, 0, 0, 739, 406, 0, 0, 0, 0, 723, 442, 0, 0, 0, 0, 702, 464, 0, 0, 0, 0, 660, 485, 0, 0, 0, 0, 617, 469, 0, 0, 0, 0, 563, 464, 0, 0, 0, 0, 525, 456, 0, 0, 0, 0, 490, 469, 0, 0, 0, 0, 487, 505, 0, 0, 0, 0, 501, 531, 0, 0, 0, 0, 513, 565, 0, 0, 0, 0, 514, 585, 0, 0, 0, 0, 491, 635)
+}
+point_count = 52
+
+[node name="Stage1" type="Node2D" unique_id=1537736232]
+
+[node name="MapBackground" type="AnimatedSprite2D" parent="." unique_id=217763290]
+z_index = -5
+position = Vector2(1, 1)
+sprite_frames = SubResource("SpriteFrames_xej52")
+autoplay = "default"
+frame_progress = 0.5168695
+centered = false
+
+[node name="Path2D" type="Path2D" parent="." unique_id=942402504]
+curve = SubResource("Curve2D_4y8ak")

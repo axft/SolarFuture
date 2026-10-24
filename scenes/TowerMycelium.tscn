@@ -1,0 +1,128 @@
+[gd_scene format=3 uid="uid://bk7r8ena2s4t"]
+
+[ext_resource type="Script" uid="uid://damfag7nyb2cx" path="res://scripts/TowerMycelium.gd" id="1_1cmkq"]
+[ext_resource type="Texture2D" uid="uid://ci1hlgj6k6yl2" path="res://assets/tower_mycelium_attack.png" id="2_fbjgw"]
+[ext_resource type="Texture2D" uid="uid://bn6q833ri7ye7" path="res://assets/tower_mycelium_idle.png" id="3_1cmkq"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1cmkq"]
+atlas = ExtResource("2_fbjgw")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ysigl"]
+atlas = ExtResource("2_fbjgw")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5ohkw"]
+atlas = ExtResource("2_fbjgw")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_y6uon"]
+atlas = ExtResource("2_fbjgw")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_v3cnf"]
+atlas = ExtResource("2_fbjgw")
+region = Rect2(192, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_q4ju8"]
+atlas = ExtResource("2_fbjgw")
+region = Rect2(240, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_poole"]
+atlas = ExtResource("2_fbjgw")
+region = Rect2(288, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jupiv"]
+atlas = ExtResource("2_fbjgw")
+region = Rect2(336, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5tkp1"]
+atlas = ExtResource("2_fbjgw")
+region = Rect2(384, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_b5884"]
+atlas = ExtResource("2_fbjgw")
+region = Rect2(432, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_41aw4"]
+atlas = ExtResource("3_1cmkq")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_desf3"]
+atlas = ExtResource("3_1cmkq")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hejnp"]
+atlas = ExtResource("3_1cmkq")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_2clhr"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1cmkq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ysigl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5ohkw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_y6uon")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_v3cnf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_q4ju8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_poole")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jupiv")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5tkp1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_b5884")
+}],
+"loop": 0,
+"name": &"attack",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_41aw4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_desf3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hejnp")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 5.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_2clhr"]
+radius = 160.0
+
+[node name="TowerMycelium" type="Node2D" unique_id=132440079]
+script = ExtResource("1_1cmkq")
+damage = 22.0
+fire_rate = 1.2
+range_radius = 160.0
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=759434891]
+sprite_frames = SubResource("SpriteFrames_2clhr")
+animation = &"idle"
+autoplay = "idle"
+
+[node name="RangeArea" type="Area2D" parent="." unique_id=753369037]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RangeArea" unique_id=157124272]
+shape = SubResource("CircleShape2D_2clhr")

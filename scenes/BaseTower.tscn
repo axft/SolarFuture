@@ -1,0 +1,4 @@
+[gd_scene format=3 uid="uid://dfy4w5wkk6a8v"]
+
+[node name="BaseTower" type="Node2D" unique_id=485704845]
+z_index = 10

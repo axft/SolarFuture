@@ -1,0 +1,76 @@
+[gd_scene format=3 uid="uid://cra1cxcbbyrx6"]
+
+[ext_resource type="Script" uid="uid://x0w6cwwa2cmn" path="res://scripts/TowerGeothermal.gd" id="1_fkege"]
+[ext_resource type="Texture2D" uid="uid://d37bsmioen5do" path="res://assets/tower_geothermal_attack.png" id="2_fkege"]
+[ext_resource type="Texture2D" uid="uid://c663dsm4tloso" path="res://assets/tower_geothermal_idle.png" id="3_1sdrf"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_np2h0"]
+atlas = ExtResource("2_fkege")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qc5s7"]
+atlas = ExtResource("2_fkege")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_284gf"]
+atlas = ExtResource("2_fkege")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_q54cf"]
+atlas = ExtResource("2_fkege")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kie7h"]
+atlas = ExtResource("2_fkege")
+region = Rect2(192, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lgxrc"]
+atlas = ExtResource("3_1sdrf")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_2clhr"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_np2h0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qc5s7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_284gf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_q54cf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kie7h")
+}],
+"loop": 0,
+"name": &"attack",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lgxrc")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 5.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_2clhr"]
+radius = 160.0
+
+[node name="TowerGeothermal" type="Node2D" unique_id=132440079]
+script = ExtResource("1_fkege")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=759434891]
+sprite_frames = SubResource("SpriteFrames_2clhr")
+animation = &"attack"
+autoplay = "idle"
+
+[node name="RangeArea" type="Area2D" parent="." unique_id=753369037]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RangeArea" unique_id=157124272]
+shape = SubResource("CircleShape2D_2clhr")

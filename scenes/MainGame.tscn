@@ -1,14 +1,7 @@
 [gd_scene format=3 uid="uid://bo4r3b82blaxq"]
 
 [ext_resource type="Script" uid="uid://newmimxk4cik" path="res://scripts/MainGame.gd" id="1_hat22"]
-[ext_resource type="Texture2D" uid="uid://dmmdaxr26gvme" path="res://assets/map_grass.png" id="2_p73vr"]
 [ext_resource type="Script" uid="uid://c3uvh67nvaco4" path="res://scripts/PlacementPreview.gd" id="2_xej52"]
-
-[sub_resource type="Curve2D" id="Curve2D_t4bxf"]
-_data = {
-"points": PackedVector2Array(0, 0, 0, 0, -24, 216, 0, 0, 0, 0, 80, 208, 0, 0, 0, 0, 192, 224, 0, 0, 0, 0, 288, 208, 0, 0, 0, 0, 392, 216, 0, 0, 0, 0, 448, 184, 0, 0, 0, 0, 440, 128, 0, 0, 0, 0, 392, 96, 0, 0, 0, 0, 336, 104, 0, 0, 0, 0, 296, 152, 0, 0, 0, 0, 304, 224, 0, 0, 0, 0, 320, 280, 0, 0, 0, 0, 320, 336, 0, 0, 0, 0, 312, 384, 0, 0, 0, 0, 280, 432, 0, 0, 0, 0, 208, 448, 0, 0, 0, 0, 176, 408, 0, 0, 0, 0, 192, 344, 0, 0, 0, 0, 256, 328, 0, 0, 0, 0, 328, 352, 0, 0, 0, 0, 384, 344, 0, 0, 0, 0, 440, 336, 0, 0, 0, 0, 512, 336, 0, 0, 0, 0, 568, 336, 0, 0, 0, 0, 592, 304, 0, 0, 0, 0, 608, 248, 0, 0, 0, 0, 656, 216, 0, 0, 0, 0, 720, 240, 0, 0, 0, 0, 744, 304, 0, 0, 0, 0, 744, 368, 0, 0, 0, 0, 736, 424, 0, 0, 0, 0, 696, 464, 0, 0, 0, 0, 632, 472, 0, 0, 0, 0, 576, 456, 0, 0, 0, 0, 520, 448, 0, 0, 0, 0, 488, 472, 0, 0, 0, 0, 504, 512, 0, 0, 0, 0, 512, 552, 0, 0, 0, 0, 504, 608)
-}
-point_count = 39
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hat22"]
 bg_color = Color(0.16078432, 0.5019608, 0.7254902, 1)
@@ -50,27 +43,7 @@ corner_radius_bottom_left = 8
 z_index = 1
 script = ExtResource("1_hat22")
 
-[node name="MapBackground" type="TextureRect" parent="." unique_id=106765943]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_right = 960.0
-offset_bottom = 600.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-texture = ExtResource("2_p73vr")
-
-[node name="Path2D" type="Path2D" parent="." unique_id=1049021551]
-curve = SubResource("Curve2D_t4bxf")
-
-[node name="RoadVisual" type="Line2D" parent="Path2D" unique_id=1331998653]
-visible = false
-width = 44.0
-default_color = Color(0.627451, 0.47058824, 0.33333334, 1)
-joint_mode = 2
-begin_cap_mode = 2
-end_cap_mode = 2
+[node name="StageContainer" type="Node2D" parent="." unique_id=750312957]
 
 [node name="PlacementPreview" type="Node2D" parent="." unique_id=201914215]
 script = ExtResource("2_xej52")
@@ -153,10 +126,10 @@ offset_bottom = 42.0
 text = "▶️ 1x"
 
 [node name="TowerMenu" type="PanelContainer" parent="UI" unique_id=1359298213]
-offset_left = 24.0
-offset_top = 400.0
-offset_right = 244.0
-offset_bottom = 590.0
+offset_left = 21.0
+offset_top = 336.0
+offset_right = 241.0
+offset_bottom = 526.0
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UI/TowerMenu" unique_id=1264537779]
 layout_mode = 2

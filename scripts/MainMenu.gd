@@ -503,7 +503,7 @@ func animate_breathing(node: Control):
 func cycle_stage(dir: int):
 	GameState.selected_stage_id += dir
 	if GameState.selected_stage_id > 2: GameState.selected_stage_id = 1
-	if GameState.selected_stage_id < 1: GameState.selected_stage_id = 2
+	if GameState.selected_stage_id < 1: GameState.selected_stage_id = 3
 	update_stage_preview()
 
 func update_stage_preview():

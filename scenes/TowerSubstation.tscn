@@ -1,0 +1,93 @@
+[gd_scene format=3 uid="uid://cbgxyduc234db"]
+
+[ext_resource type="Script" uid="uid://dtrlhee7unhb6" path="res://scripts/TowerSubstation.gd" id="1_6dt58"]
+[ext_resource type="Texture2D" uid="uid://b812t5fwa7llc" path="res://assets/tower_substation_attack.png" id="2_6dt58"]
+[ext_resource type="Texture2D" uid="uid://hr3tdvsb4y02" path="res://assets/tower_substation_idle.png" id="3_8l1nl"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_edqe0"]
+atlas = ExtResource("2_6dt58")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kgf5e"]
+atlas = ExtResource("2_6dt58")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_e2lnx"]
+atlas = ExtResource("2_6dt58")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ij866"]
+atlas = ExtResource("2_6dt58")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0ykyk"]
+atlas = ExtResource("2_6dt58")
+region = Rect2(192, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_r854h"]
+atlas = ExtResource("2_6dt58")
+region = Rect2(240, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mggkq"]
+atlas = ExtResource("2_6dt58")
+region = Rect2(288, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_agtjj"]
+atlas = ExtResource("3_8l1nl")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_2clhr"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_edqe0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kgf5e")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_e2lnx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ij866")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0ykyk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_r854h")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mggkq")
+}],
+"loop": 0,
+"name": &"attack",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_agtjj")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 5.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_2clhr"]
+radius = 160.0
+
+[node name="TowerSubstation" type="Node2D" unique_id=132440079]
+script = ExtResource("1_6dt58")
+damage = 22.0
+fire_rate = 1.2
+range_radius = 160.0
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=759434891]
+sprite_frames = SubResource("SpriteFrames_2clhr")
+animation = &"idle"
+autoplay = "idle"
+
+[node name="RangeArea" type="Area2D" parent="." unique_id=753369037]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RangeArea" unique_id=157124272]
+shape = SubResource("CircleShape2D_2clhr")

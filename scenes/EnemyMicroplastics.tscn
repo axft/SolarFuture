@@ -1,0 +1,91 @@
+[gd_scene format=3 uid="uid://b0kpb24g6wd6w"]
+
+[ext_resource type="Script" uid="uid://5th0dm0ilfbm" path="res://scripts/EnemyMicroplastics.gd" id="1_1r10f"]
+[ext_resource type="Texture2D" uid="uid://dcx1vx4p8p4j8" path="res://assets/fx_microplastics_pop.png" id="2_1r10f"]
+[ext_resource type="Texture2D" uid="uid://cqw8p7inlsogs" path="res://assets/enemy_microplastics.png" id="3_vps7b"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_2clhr"]
+radius = 18.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_70ajo"]
+atlas = ExtResource("2_1r10f")
+region = Rect2(0, 0, 28, 28)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_y4no1"]
+atlas = ExtResource("2_1r10f")
+region = Rect2(28, 0, 28, 28)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_x3le7"]
+atlas = ExtResource("2_1r10f")
+region = Rect2(56, 0, 28, 28)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_er8i6"]
+atlas = ExtResource("2_1r10f")
+region = Rect2(84, 0, 28, 28)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_b57li"]
+atlas = ExtResource("3_vps7b")
+region = Rect2(0, 0, 28, 28)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yekd2"]
+atlas = ExtResource("3_vps7b")
+region = Rect2(28, 0, 28, 28)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_b8wgs"]
+atlas = ExtResource("3_vps7b")
+region = Rect2(56, 0, 28, 28)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_etjwb"]
+atlas = ExtResource("3_vps7b")
+region = Rect2(84, 0, 28, 28)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_2clhr"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_70ajo")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_y4no1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_x3le7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_er8i6")
+}],
+"loop": 0,
+"name": &"death",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_b57li")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yekd2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_b8wgs")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_etjwb")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}]
+
+[node name="SmogEnemy" type="PathFollow2D" unique_id=8423586]
+loop = false
+script = ExtResource("1_1r10f")
+
+[node name="Hitbox" type="Area2D" parent="." unique_id=810359078]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox" unique_id=542356587]
+shape = SubResource("CircleShape2D_2clhr")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=45550452]
+sprite_frames = SubResource("SpriteFrames_2clhr")
+animation = &"death"
+autoplay = "default"

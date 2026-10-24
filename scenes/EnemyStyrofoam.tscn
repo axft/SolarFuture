@@ -1,0 +1,97 @@
+[gd_scene format=3 uid="uid://iawgbdlb7cb3"]
+
+[ext_resource type="Script" uid="uid://54kq3viattmk" path="res://scripts/EnemyStyrofoam.gd" id="1_hn3j6"]
+[ext_resource type="Texture2D" uid="uid://bujnlfag7ea6s" path="res://assets/fx_styrofoam_pop.png" id="2_hn3j6"]
+[ext_resource type="Texture2D" uid="uid://ufvoa3h5tcbr" path="res://assets/enemy_styrofoam.png" id="3_nxthj"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_2clhr"]
+radius = 18.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wp12s"]
+atlas = ExtResource("2_hn3j6")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_epd0x"]
+atlas = ExtResource("2_hn3j6")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mdl06"]
+atlas = ExtResource("2_hn3j6")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jvnq5"]
+atlas = ExtResource("2_hn3j6")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_o10aw"]
+atlas = ExtResource("2_hn3j6")
+region = Rect2(128, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6g72k"]
+atlas = ExtResource("2_hn3j6")
+region = Rect2(160, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wn7xk"]
+atlas = ExtResource("3_nxthj")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8x0gl"]
+atlas = ExtResource("3_nxthj")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_p802h"]
+atlas = ExtResource("3_nxthj")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_2clhr"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wp12s")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_epd0x")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mdl06")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jvnq5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_o10aw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6g72k")
+}],
+"loop": 0,
+"name": &"death",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wn7xk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8x0gl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_p802h")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}]
+
+[node name="SmogEnemy" type="PathFollow2D" unique_id=8423586]
+loop = false
+script = ExtResource("1_hn3j6")
+
+[node name="Hitbox" type="Area2D" parent="." unique_id=810359078]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox" unique_id=542356587]
+shape = SubResource("CircleShape2D_2clhr")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=45550452]
+sprite_frames = SubResource("SpriteFrames_2clhr")
+autoplay = "default"
