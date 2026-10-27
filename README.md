@@ -11,19 +11,19 @@
 
 ## About the Project
 
-tba
+To be added
 
 ---
 
 ## System Architecture & Tech Stack
 
-tba
+To be added
 
 ---
 
 ## Features
 
-tba
+To be added
 
 ## Development Team - T1
 
