@@ -102,10 +102,12 @@ var selected_stage_id: int = 1
 const STAGES = {
 	1: {
 		"name": "Greenfield Valley",
-		"desc": "Baseline biosphere. Smog and light waste.",
+		"desc": "Baseline clean energy deployment. Smog and light waste.",
 		"target_wave": 5,
-		"bg_color": Color("#1e824c"),
 		"bonus_kwh": 150,
+		"hp_mult": 1.0,
+		"speed_mult": 1.0,
+		"spawn_delay": 1.2, # 1.2s between creep spawns
 		"points": [
 			Vector2(0, 300), Vector2(260, 300), Vector2(260, 120),
 			Vector2(680, 120), Vector2(680, 460), Vector2(960, 460)
@@ -113,10 +115,12 @@ const STAGES = {
 	},
 	2: {
 		"name": "Industrial Basin",
-		"desc": "Dense soot, Styrofoam, and E-Waste threats.",
+		"desc": "Dense soot, Styrofoam, and Armored E-Waste threats.",
 		"target_wave": 8,
-		"bg_color": Color("#2c3e50"),
 		"bonus_kwh": 300,
+		"hp_mult": 1.25,      # 25% more HP
+		"speed_mult": 1.12,   # 12% faster
+		"spawn_delay": 0.9,   # Faster spawns
 		"points": [
 			Vector2(0, 150), Vector2(400, 150), Vector2(400, 350),
 			Vector2(200, 350), Vector2(200, 500), Vector2(960, 500)
@@ -124,10 +128,12 @@ const STAGES = {
 	},
 	3: {
 		"name": "Coastal Landfill",
-		"desc": "Extreme pollution: Microplastics & Massive Garbage Piles.",
+		"desc": "Extreme pollution: Swarming Microplastics & Landfill Heaps.",
 		"target_wave": 10,
-		"bg_color": Color("#162a38"),
 		"bonus_kwh": 500,
+		"hp_mult": 1.5,       # 50% more HP
+		"speed_mult": 1.22,   # 22% faster
+		"spawn_delay": 0.75,  # Rapid swarm cadence!
 		"points": [
 			Vector2(0, 450), Vector2(300, 450), Vector2(300, 200),
 			Vector2(600, 200), Vector2(600, 380), Vector2(850, 380), Vector2(850, 100), Vector2(960, 100)

@@ -21,24 +21,6 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_t4bxf"]
-bg_color = Color(0.827451, 0.32941177, 0, 1)
-border_width_bottom = 3
-border_color = Color(0.627451, 0.2509804, 0, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x628s"]
-bg_color = Color(0.9019608, 0.49411765, 0.13333334, 1)
-border_width_bottom = 3
-border_color = Color(0.827451, 0.32941177, 0, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-
 [node name="MainGame" type="Node2D" unique_id=1137902059]
 z_index = 1
 script = ExtResource("1_hat22")
@@ -94,28 +76,11 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_hat22")
 theme_override_styles/hover = SubResource("StyleBoxFlat_xej52")
 text = "Start Wave"
 
-[node name="BuildSolarBtn" type="Button" parent="UI" unique_id=281236449]
-offset_left = 792.0
-offset_top = 96.0
-offset_right = 944.0
-offset_bottom = 138.0
-theme_override_styles/normal = SubResource("StyleBoxFlat_t4bxf")
-theme_override_styles/hover = SubResource("StyleBoxFlat_x628s")
-text = "Build Solar"
-
-[node name="BuildWindBtn" type="Button" parent="UI" unique_id=513856088]
-offset_left = 792.0
-offset_top = 152.0
-offset_right = 944.0
-offset_bottom = 194.0
-text = "Build Wind
-"
-
 [node name="PauseBtn" type="Button" parent="UI" unique_id=1622220355]
-offset_left = 799.0
-offset_top = 11.0
-offset_right = 854.0
-offset_bottom = 42.0
+offset_left = 599.0
+offset_top = 10.0
+offset_right = 654.0
+offset_bottom = 41.0
 text = "Pause"
 
 [node name="SpeedBtn" type="Button" parent="UI" unique_id=805916022]

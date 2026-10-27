@@ -40,20 +40,20 @@ var dim_overlay: ColorRect
 var modal_center: CenterContainer
 
 func _ready():
-	# Fallback for close buttons if named generically as "Button"
+	# 1. Fallback for close buttons if named generically as "Button"
 	if not close_leaderboard_btn and leaderboard_modal:
 		close_leaderboard_btn = leaderboard_modal.find_child("Button", true, false)
 	if not close_encyclopedia_btn and encyclopedia_modal:
 		close_encyclopedia_btn = encyclopedia_modal.find_child("Button", true, false)
 
-	# 1. Build BTD6 Visual Interface & Carousel
+	# 2. Build BTD6 Visual Interface & Carousel
 	build_btd6_layout()
 
-	# 2. Setup Dedicated Modal Popup Layer
+	# 3. Setup Dedicated Modal Popup Layer
 	setup_modal_layer()
 	update_stage_preview()
 
-	# 3. Connect Buttons
+	# 4. Connect Buttons
 	if deploy_btn: deploy_btn.pressed.connect(_on_deploy_pressed)
 	if leaderboard_btn: leaderboard_btn.pressed.connect(_on_leaderboard_pressed)
 	if encyclopedia_btn: encyclopedia_btn.pressed.connect(_on_encyclopedia_pressed)
@@ -74,14 +74,14 @@ func _ready():
 func build_btd6_layout():
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
-	# 1. Fallback ColorRect Background (Screen will NEVER be pure black)
+	# 1. Fallback Background (Guarantees screen is never pitch black)
 	var fallback_bg = ColorRect.new()
 	fallback_bg.color = Color("#183048")
 	fallback_bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	fallback_bg.z_index = -10
 	add_child(fallback_bg)
 
-	# Handle Background if present in scene tree
+	# Handle Animated Background if present in scene tree
 	if background:
 		if background is Control:
 			background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -155,72 +155,30 @@ func build_btd6_layout():
 	energy_hbox.add_child(energy_lbl)
 
 	# --------------------------------------------------------------------------
-	# C. CENTER: GAMELOGO LOADER & STAGE CAROUSEL
+	# C. CENTER: FIXED GAMELOGO & STAGE CAROUSEL
 	# --------------------------------------------------------------------------
+	# Automatically connect to the AnimatedSprite2D you placed in MainMenu.tscn
+	var logo_node = find_child("GameLogo")
+	if not logo_node:
+		# Check for generic name
+		logo_node = find_child("AnimatedSprite2D")
+		
+	if logo_node and logo_node != background:
+		logo_node.position = Vector2(480, 160)
+		logo_node.z_index = 5
+		if logo_node.has_method("play") and logo_node.sprite_frames:
+			logo_node.play()
+
+	# Stage Selection Box positioned comfortably below the logo
 	var center_box = VBoxContainer.new()
-	center_box.position = Vector2(180, 85)
+	center_box.position = Vector2(180, 260)
 	center_box.custom_minimum_size = Vector2(600, 0)
 	center_box.alignment = BoxContainer.ALIGNMENT_CENTER
-	center_box.add_theme_constant_override("separation", 10)
+	center_box.add_theme_constant_override("separation", 6)
 	add_child(center_box)
 
-	# Safe GameLogo Loader (Slices strip if animated, or displays static)
-	var logo_paths = ["res://assets/GameLogo.png", "res://assets/gamelogo.png", "res://assets/logo.png"]
-	var logo_tex: Texture2D = null
-
-	for path in logo_paths:
-		if FileAccess.file_exists(path) or ResourceLoader.exists(path):
-			var res = load(path)
-			if res and res is Texture2D:
-				logo_tex = res
-				print("✅ Loaded GameLogo from: ", path)
-				break
-
-	if logo_tex:
-		var total_size = logo_tex.get_size()
-		# Change frame_count to match the number of frames in your logo strip (1 if static)
-		var frame_count: int = 4
-		var frame_w = max(1.0, total_size.x / frame_count)
-		var frame_h = max(1.0, total_size.y)
-
-		var sprite_frames = SpriteFrames.new()
-		sprite_frames.add_animation("logo_loop")
-		sprite_frames.set_animation_loop("logo_loop", true)
-		sprite_frames.set_animation_speed("logo_loop", 8.0)
-
-		for i in range(frame_count):
-			var atlas = AtlasTexture.new()
-			atlas.atlas = logo_tex
-			atlas.region = Rect2(i * frame_w, 0, frame_w, frame_h)
-			sprite_frames.add_frame("logo_loop", atlas)
-
-		var scale_mult = 2.0 if frame_w < 120 else 1.0
-		var target_w = min(frame_w * scale_mult, 380.0)
-		var target_h = frame_h * scale_mult
-
-		var logo_holder = Control.new()
-		logo_holder.custom_minimum_size = Vector2(target_w, target_h)
-		logo_holder.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		center_box.add_child(logo_holder)
-
-		var anim_logo = AnimatedSprite2D.new()
-		anim_logo.sprite_frames = sprite_frames
-		anim_logo.animation = "logo_loop"
-		anim_logo.scale = Vector2(scale_mult, scale_mult)
-		anim_logo.position = Vector2(target_w / 2.0, target_h / 2.0)
-		anim_logo.play("logo_loop")
-		logo_holder.add_child(anim_logo)
-	else:
-		var title_lbl = Label.new()
-		title_lbl.text = "SOLARFUTURE"
-		title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		title_lbl.add_theme_font_size_override("font_size", 42)
-		add_arcade_font_outline(title_lbl, Color("#f1c40f"), Color("#7a4d00"), 6)
-		center_box.add_child(title_lbl)
-
-	# Stage Selection Carousel Box
 	var stage_card = PanelContainer.new()
-	stage_card.custom_minimum_size = Vector2(500, 140)
+	stage_card.custom_minimum_size = Vector2(500, 130)
 	stage_card.add_theme_stylebox_override("panel", make_btd_box(Color("#102231"), Color("#3498db"), 16, 5, 12))
 	center_box.add_child(stage_card)
 
@@ -263,7 +221,7 @@ func build_btd6_layout():
 	stage_vbox.add_child(stage_target_lbl)
 
 	# --------------------------------------------------------------------------
-	# D. BOTTOM CHUNKY DOCK BAR (CUSTOM SPRITE BUTTONS)
+	# D. BOTTOM CHUNKY DOCK BAR (FIXED AUDIO BUTTON INTEGRATION)
 	# --------------------------------------------------------------------------
 	var bottom_shelf = PanelContainer.new()
 	bottom_shelf.position = Vector2(40, 500)
@@ -289,10 +247,11 @@ func build_btd6_layout():
 		deploy_btn.reparent(dock_hbox)
 		apply_texture_button(deploy_btn, "res://assets/button_play.png", "▶  PLAY", Color("#27ae60"), Color("#2ecc71"), Vector2(190, 64), true)
 
-	# Audio Settings Button
+	# --- FIXED: AUDIO SETTINGS BUTTON INSTANTIATION ---
 	settings_btn = Button.new()
+	settings_btn.name = "AudioSettingsBtn"
 	dock_hbox.add_child(settings_btn)
-	style_btd_button(settings_btn, "⚙️ AUDIO", Color("#4b6584"), Color("#778ca3"), Vector2(120, 56))
+	apply_texture_button(settings_btn, "res://assets/button_audio.png", "⚙️ AUDIO", Color("#4b6584"), Color("#778ca3"), Vector2(130, 56))
 	settings_btn.pressed.connect(_on_settings_pressed)
 
 	if sign_out_btn:
@@ -502,7 +461,7 @@ func animate_breathing(node: Control):
 # ==============================================================================
 func cycle_stage(dir: int):
 	GameState.selected_stage_id += dir
-	if GameState.selected_stage_id > 2: GameState.selected_stage_id = 1
+	if GameState.selected_stage_id > 3: GameState.selected_stage_id = 1
 	if GameState.selected_stage_id < 1: GameState.selected_stage_id = 3
 	update_stage_preview()
 
@@ -528,52 +487,125 @@ func _on_leaderboard_pressed():
 	encyclopedia_modal.visible = false
 	if settings_modal: settings_modal.visible = false
 
+	# 1. FORCE the ScrollContainer to have visible height (prevents 0px collapse)
+	var scroll = leaderboard_modal.find_child("ScrollContainer", true, false)
+	if scroll:
+		scroll.custom_minimum_size = Vector2(480, 240)
+		scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+
+	# 2. Clear old rows and show loading indicator
 	if leaderboard_list:
-		for child in leaderboard_list.get_children(): child.queue_free()
+		for child in leaderboard_list.get_children():
+			child.queue_free()
+
 		var loading = Label.new()
 		loading.name = "Loading"
-		loading.text = "Syncing with MySQL grid records..."
+		loading.text = "Syncing with Central MySQL Grid..."
 		loading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		loading.add_theme_font_size_override("font_size", 13)
+		loading.add_theme_color_override("font_color", Color("#bdc3c7"))
 		leaderboard_list.add_child(loading)
 
-	if leaderboard_request:
-		leaderboard_request.request("http://localhost/solarfuture/api/get_leaderboard.php")
+	# 3. Auto-create HTTPRequest node if missing so request NEVER fails
+	if not leaderboard_request:
+		leaderboard_request = HTTPRequest.new()
+		leaderboard_request.name = "LeaderboardRequest"
+		add_child(leaderboard_request)
+		leaderboard_request.request_completed.connect(_on_leaderboard_data_received)
+
+	print("📡 Requesting leaderboard from: http://localhost/solarfuture/api/get_leaderboard.php")
+	leaderboard_request.request("http://localhost/solarfuture/api/get_leaderboard.php")
 
 func _on_leaderboard_data_received(_result, response_code, _headers, body):
-	if not leaderboard_list: return
-	var loading = leaderboard_list.get_node_or_null("Loading")
-	if loading: loading.queue_free()
+	var raw_text = body.get_string_from_utf8()
+	print("📥 Leaderboard HTTP Status: ", response_code)
+	print("📥 Leaderboard Response: ", raw_text)
 
+	if not leaderboard_list: 
+		print("❌ leaderboard_list node not found in scene tree!")
+		return
+
+	# Remove loading label
+	var loading = leaderboard_list.get_node_or_null("Loading")
+	if loading: 
+		loading.queue_free()
+
+	# If Apache or MySQL is offline
 	if response_code != 200:
-		var err = Label.new(); err.text = "Failed to fetch leaderboard (HTTP %d)." % response_code
+		var err = Label.new()
+		err.text = "⚠️ Connection error (HTTP %d). Is XAMPP Apache running?" % response_code
+		err.add_theme_color_override("font_color", Color("#e74c3c"))
 		leaderboard_list.add_child(err)
 		return
 
-	var res = JSON.parse_string(body.get_string_from_utf8())
-	if res and res.has("success") and res.success:
-		var records = res.get("leaderboard", [])
-		if records.is_empty():
-			var empty = Label.new(); empty.text = "No records found in database."
-			leaderboard_list.add_child(empty)
-			return
+	var res = JSON.parse_string(raw_text)
+	if not res or not res.has("success") or not res.success:
+		var err = Label.new()
+		err.text = "Database error or invalid JSON response."
+		leaderboard_list.add_child(err)
+		return
 
-		for entry in records:
-			var row = HBoxContainer.new()
-			row.add_theme_constant_override("separation", 14)
+	var records = res.get("leaderboard", [])
+	if records.is_empty():
+		var empty = Label.new()
+		empty.text = "No records found in database. Deploy and be the first!"
+		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		leaderboard_list.add_child(empty)
+		return
 
-			var rank_lbl = Label.new(); rank_lbl.custom_minimum_size.x = 40; rank_lbl.text = "#%d" % entry.rank
-			rank_lbl.add_theme_color_override("font_color", Color("#f1c40f"))
+	# Table Header Row
+	var header_row = HBoxContainer.new()
+	header_row.add_theme_constant_override("separation", 12)
+	
+	var h_rank = Label.new(); h_rank.custom_minimum_size.x = 45; h_rank.text = "RANK"
+	var h_name = Label.new(); h_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL; h_name.text = "OFFICER"
+	var h_score = Label.new(); h_score.custom_minimum_size.x = 120; h_score.text = "SUSTAINABILITY"
+	var h_wave = Label.new(); h_wave.custom_minimum_size.x = 80; h_wave.text = "MAX WAVE"
+	
+	for h in [h_rank, h_name, h_score, h_wave]:
+		h.add_theme_font_size_override("font_size", 11)
+		h.add_theme_color_override("font_color", Color("#7f8c8d"))
+		header_row.add_child(h)
+	leaderboard_list.add_child(header_row)
 
-			var user_lbl = Label.new(); user_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL; user_lbl.text = entry.username
-			if entry.username == GameState.current_username:
-				user_lbl.text += " (You)"
-				user_lbl.add_theme_color_override("font_color", Color("#2ecc71"))
+	# Populate Data Rows
+	for entry in records:
+		var row = HBoxContainer.new()
+		row.add_theme_constant_override("separation", 12)
 
-			var score_lbl = Label.new(); score_lbl.custom_minimum_size.x = 120; score_lbl.text = "🌱 %d pts" % entry.top_score
-			var wave_lbl = Label.new(); wave_lbl.custom_minimum_size.x = 80; wave_lbl.text = "🌊 Wave %d" % entry.max_wave
+		var rank_lbl = Label.new()
+		rank_lbl.custom_minimum_size.x = 45
+		rank_lbl.text = "#%d" % entry.rank
+		rank_lbl.add_theme_font_size_override("font_size", 13)
+		rank_lbl.add_theme_color_override("font_color", Color("#f1c40f") if entry.rank <= 3 else Color("#bdc3c7"))
 
-			row.add_child(rank_lbl); row.add_child(user_lbl); row.add_child(score_lbl); row.add_child(wave_lbl)
-			leaderboard_list.add_child(row)
+		var user_lbl = Label.new()
+		user_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		user_lbl.text = entry.username
+		user_lbl.add_theme_font_size_override("font_size", 13)
+		if entry.username == GameState.current_username:
+			user_lbl.text += " (You)"
+			user_lbl.add_theme_color_override("font_color", Color("#2ecc71"))
+		else:
+			user_lbl.add_theme_color_override("font_color", Color.WHITE)
+
+		var score_lbl = Label.new()
+		score_lbl.custom_minimum_size.x = 120
+		score_lbl.text = "🌱 %d pts" % entry.top_score
+		score_lbl.add_theme_font_size_override("font_size", 13)
+		score_lbl.add_theme_color_override("font_color", Color("#2ecc71"))
+
+		var wave_lbl = Label.new()
+		wave_lbl.custom_minimum_size.x = 80
+		wave_lbl.text = "🌊 Wave %d" % entry.max_wave
+		wave_lbl.add_theme_font_size_override("font_size", 13)
+		wave_lbl.add_theme_color_override("font_color", Color("#3498db"))
+
+		row.add_child(rank_lbl)
+		row.add_child(user_lbl)
+		row.add_child(score_lbl)
+		row.add_child(wave_lbl)
+		leaderboard_list.add_child(row)
 
 func _on_encyclopedia_pressed():
 	modal_wrapper.visible = true
@@ -603,7 +635,7 @@ func setup_encyclopedia_text():
 func auto_play_menu_music():
 	var possible_tracks = [
 		"res://assets/menu_music.mp3",
-		"res://assets/menu_theme.mp3",
+		"res://assets/main_menu.mp3",
 		"res://assets/btd6_theme.mp3",
 		"res://assets/music.mp3",
 		"res://assets/menu_theme.ogg"

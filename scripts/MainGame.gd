@@ -1,24 +1,25 @@
 extends Node2D
 
+# --- CORE NODE REFERENCES ---
 @onready var stage_container = $StageContainer
 @onready var http_request = $ScoreSyncRequest
+@onready var ui_layer = $UI
 
-# --- HUD LABELS ---
+# HUD Bar Elements
+@onready var hud_bar = $UI/ColorRect
 @onready var energy_label = $UI/ColorRect/HBoxContainer/EnergyLabel
 @onready var health_label = $UI/ColorRect/HBoxContainer/HealthLabel
 @onready var wave_label = $UI/ColorRect/HBoxContainer/WaveLabel
 @onready var score_label = $UI/ColorRect/HBoxContainer/ScoreLabel
 
-# --- CONTROL BUTTONS ---
+# Existing Buttons in Scene
 @onready var start_wave_btn = $UI/StartWaveBtn
 @onready var pause_btn = get_node_or_null("UI/PauseBtn")
 @onready var speed_btn = get_node_or_null("UI/SpeedBtn")
-
-# Pre-existing individual build buttons in your scene
 @onready var build_solar_btn = get_node_or_null("UI/BuildSolarBtn")
 @onready var build_wind_btn = get_node_or_null("UI/BuildWindBtn")
 
-# --- TOWER INSPECTOR UI ---
+# Tower Inspector UI
 @onready var tower_menu = get_node_or_null("UI/TowerMenu")
 @onready var menu_title = get_node_or_null("UI/TowerMenu/VBoxContainer/TitleLabel")
 @onready var stats_label = get_node_or_null("UI/TowerMenu/VBoxContainer/StatsLabel")
@@ -27,53 +28,53 @@ extends Node2D
 @onready var upgrade_spd_btn = get_node_or_null("UI/TowerMenu/VBoxContainer/UpgradeSpdBtn")
 @onready var close_menu_btn = get_node_or_null("UI/TowerMenu/VBoxContainer/CloseBtn")
 
-# Tower Scene Fallbacks
-# --- TOWER SCENES REGISTRY ---
-var tower_scenes: Dictionary = {
-	"SOLAR": preload("res://scenes/TowerSolar.tscn"),
-	"WIND": preload("res://scenes/TowerWind.tscn") if ResourceLoader.exists("res://scenes/TowerWind.tscn") else preload("res://scenes/TowerSolar.tscn"),
-	"MYCELIUM": preload("res://scenes/TowerMycelium.tscn") if ResourceLoader.exists("res://scenes/TowerMycelium.tscn") else preload("res://scenes/TowerSolar.tscn"),
-	"GEOTHERMAL": preload("res://scenes/TowerGeothermal.tscn") if ResourceLoader.exists("res://scenes/TowerGeothermal.tscn") else preload("res://scenes/TowerSolar.tscn"),
-	"SUBSTATION": preload("res://scenes/TowerSubstation.tscn") if ResourceLoader.exists("res://scenes/TowerSubstation.tscn") else preload("res://scenes/TowerSolar.tscn"),
-	"SPRINKLER": preload("res://scenes/TowerSprinkler.tscn") if ResourceLoader.exists("res://scenes/TowerSprinkler.tscn") else preload("res://scenes/TowerSolar.tscn"),
-	"SAPLING": preload("res://scenes/TowerSapling.tscn") if ResourceLoader.exists("res://scenes/TowerSapling.tscn") else preload("res://scenes/TowerSolar.tscn"),
-}
+# Tower Scene Registry
+var base_tower_scene: PackedScene = preload("res://scenes/BaseTower.tscn") if ResourceLoader.exists("res://scenes/BaseTower.tscn") else preload("res://scenes/TowerSolar.tscn")
+var solar_tower_scene: PackedScene = preload("res://scenes/TowerSolar.tscn")
+var wind_tower_scene: PackedScene = preload("res://scenes/TowerWind.tscn") if ResourceLoader.exists("res://scenes/TowerWind.tscn") else preload("res://scenes/TowerSolar.tscn")
 
+var tower_scenes: Dictionary = {}
 var enemy_scenes: Dictionary = {}
 var current_path_2d: Path2D = null
 
+# Runtime States
 var selected_tower: Node2D = null
 var enemies_to_spawn: int = 6
 var enemies_spawned: int = 0
 var spawn_timer: float = 0.0
 var game_speed: float = 1.0
 
+# UI Controls & Shelf Wrapper
+var exit_btn: Button
+var exit_modal: PanelContainer
 var victory_modal: PanelContainer
+var right_shelf_wrapper: PanelContainer
+var animated_placement_buttons: Array[Dictionary] = []
 
 func _ready():
 	Engine.time_scale = 1.0
 
-	# 1. Load active stage scene (Stage1.tscn)
+	# 1. Load active stage scene
 	load_active_stage()
 
-	# 2. Preload enemies
+	# 2. Preload assets
 	load_enemy_scenes()
+	setup_tower_scenes()
 
-	# 3. CONNECT ALL BUILD BUTTONS (Both existing buttons and new tray)
-	if build_solar_btn:
-		build_solar_btn.pressed.connect(func(): on_tower_select_clicked("SOLAR"))
-	if build_wind_btn:
-		build_wind_btn.pressed.connect(func(): on_tower_select_clicked("WIND"))
-		
-	build_tower_selection_bar()
+	# 3. Build UI layouts
+	setup_top_hud_layout()
+	setup_right_tower_shelf()
 
-	# 4. Connect Core Buttons
+	# 4. Connect Core Controls
 	start_wave_btn.pressed.connect(_on_start_wave_pressed)
-	if pause_btn: pause_btn.pressed.connect(_on_pause_pressed)
-	if speed_btn: speed_btn.pressed.connect(_on_speed_pressed)
 
+	if build_solar_btn: build_solar_btn.visible = false
+	if build_wind_btn: build_wind_btn.visible = false
+
+	# Tower Inspector Setup
 	if tower_menu:
 		tower_menu.visible = false
+		tower_menu.position = Vector2(630, 260) # Positioned cleanly to the left of the right shelf
 		if close_menu_btn: close_menu_btn.pressed.connect(deselect_tower)
 		if upgrade_dmg_btn: upgrade_dmg_btn.pressed.connect(_on_upgrade_damage_pressed)
 		if upgrade_spd_btn: upgrade_spd_btn.pressed.connect(_on_upgrade_speed_pressed)
@@ -86,25 +87,245 @@ func _ready():
 
 	http_request.request_completed.connect(_on_score_synced)
 	update_ui()
-	print("🎮 MainGame initialized successfully.")
 
-# --- LOAD ACTIVE STAGE SCENE ---
+	# 5. Play Cinematic Slide-In Intro Animations!
+	play_hud_intro_animations()
+
+# ==============================================================================
+# ✨ CINEMATIC SLIDE-IN INTRO ANIMATIONS
+# ==============================================================================
+func play_hud_intro_animations():
+	# A. Top HUD Bar slides down from ceiling
+	hud_bar.position.y = -50
+	var tw_top = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tw_top.tween_property(hud_bar, "position:y", 0.0, 0.45)
+
+	# B. Right-Side Tower Shelf slides in from the right edge
+	if right_shelf_wrapper:
+		right_shelf_wrapper.position.x = 980
+		var tw_right = create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tw_right.tween_property(right_shelf_wrapper, "position:x", 874.0, 0.55).set_delay(0.1)
+
+	# C. Start Wave Button slides up from the floor
+	start_wave_btn.position.y = 620
+	var tw_bot = create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw_bot.tween_property(start_wave_btn, "position:y", 535.0, 0.5).set_delay(0.2)
+
+# ==============================================================================
+# 📐 UI LAYOUT: TOP HUD & VERTICAL RIGHT SHELF
+# ==============================================================================
+func setup_top_hud_layout():
+	hud_bar.position = Vector2(0, 0)
+	hud_bar.size = Vector2(960, 44)
+	hud_bar.color = Color("#0e161c")
+
+	var top_hbox = hud_bar.get_node_or_null("HBoxContainer")
+	if top_hbox:
+		top_hbox.position = Vector2(16, 6)
+		top_hbox.size = Vector2(928, 32)
+		top_hbox.add_theme_constant_override("separation", 16)
+
+		# Spacer pushes action buttons to the far right
+		var spacer = Control.new()
+		spacer.name = "HUDSpacer"
+		spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		top_hbox.add_child(spacer)
+
+		# 1. Speed Button
+		if not speed_btn:
+			speed_btn = Button.new()
+			speed_btn.name = "SpeedBtn"
+		if speed_btn.get_parent(): speed_btn.reparent(top_hbox)
+		else: top_hbox.add_child(speed_btn)
+		style_hud_control_btn(speed_btn, "⏩ 1x", Color("#2c3e50"), Color("#34495e"), Vector2(75, 28))
+		if not speed_btn.pressed.is_connected(_on_speed_pressed):
+			speed_btn.pressed.connect(_on_speed_pressed)
+
+		# 2. Pause Button
+		if not pause_btn:
+			pause_btn = Button.new()
+			pause_btn.name = "PauseBtn"
+		if pause_btn.get_parent(): pause_btn.reparent(top_hbox)
+		else: top_hbox.add_child(pause_btn)
+		style_hud_control_btn(pause_btn, "⏸️ Pause", Color("#2c3e50"), Color("#34495e"), Vector2(85, 28))
+		if not pause_btn.pressed.is_connected(_on_pause_pressed):
+			pause_btn.pressed.connect(_on_pause_pressed)
+
+		# 3. Exit Button
+		exit_btn = Button.new()
+		exit_btn.name = "HUDExitBtn"
+		top_hbox.add_child(exit_btn)
+		style_hud_control_btn(exit_btn, "🚪 Exit", Color("#c0392b"), Color("#e74c3c"), Vector2(85, 28))
+		exit_btn.pressed.connect(_on_exit_stage_clicked)
+
+	build_exit_modal()
+
+func setup_right_tower_shelf():
+	# Position Start Wave Button cleanly on bottom-left
+	start_wave_btn.position = Vector2(20, 535)
+	start_wave_btn.custom_minimum_size = Vector2(145, 48)
+	style_hud_control_btn(start_wave_btn, "▶️ Start Wave", Color("#27ae60"), Color("#2ecc71"), Vector2(145, 48))
+
+	# 1. Dedicated Vertical Shelf Panel on the Right Side
+	right_shelf_wrapper = PanelContainer.new()
+	right_shelf_wrapper.name = "RightTowerShelf"
+	right_shelf_wrapper.position = Vector2(874, 52)
+	right_shelf_wrapper.custom_minimum_size = Vector2(76, 536)
+
+	var shelf_sb = StyleBoxFlat.new()
+	shelf_sb.bg_color = Color("#0b141aee")
+	shelf_sb.border_color = Color("#1e2c38")
+	shelf_sb.set_border_width_all(1)
+	shelf_sb.set_corner_radius_all(10)
+	shelf_sb.content_margin_top = 8
+	shelf_sb.content_margin_bottom = 8
+	shelf_sb.content_margin_left = 6
+	shelf_sb.content_margin_right = 6
+	right_shelf_wrapper.add_theme_stylebox_override("panel", shelf_sb)
+	$UI.add_child(right_shelf_wrapper)
+
+	# 2. Vertical Scroll Container (handles all 7 towers cleanly)
+	var scroll = ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	right_shelf_wrapper.add_child(scroll)
+
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 6)
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(vbox)
+
+	animated_placement_buttons.clear()
+
+	for type in GameState.TOWER_CATALOG:
+		var cfg = GameState.TOWER_CATALOG[type]
+
+		# Outer Card Box to guarantee a uniform, clean square border
+		var card = PanelContainer.new()
+		card.custom_minimum_size = Vector2(64, 64)
+		var card_sb = StyleBoxFlat.new()
+		card_sb.bg_color = Color("#14202b")
+		card_sb.border_color = Color("#223342")
+		card_sb.set_border_width_all(1)
+		card_sb.set_corner_radius_all(6)
+		card.add_theme_stylebox_override("panel", card_sb)
+		vbox.add_child(card)
+
+		# The Interactive Button
+		var btn = Button.new()
+		btn.tooltip_text = "%s\nCost: %d kWh\nRange: %dpx | Dmg: %.0f" % [cfg.name, cfg.cost, int(cfg.range), cfg.damage]
+		btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		btn.custom_minimum_size = Vector2(64, 64)
+		btn.pivot_offset = Vector2(32, 32)
+		btn.flat = true
+
+		var empty_sb = StyleBoxEmpty.new()
+		btn.add_theme_stylebox_override("normal", empty_sb)
+		btn.add_theme_stylebox_override("hover", empty_sb)
+		btn.add_theme_stylebox_override("pressed", empty_sb)
+		btn.add_theme_stylebox_override("focus", empty_sb)
+		card.add_child(btn)
+
+		# Load the 640x128 sprite sheet
+		var sprite_path = "res://assets/place_%s.png" % type.to_lower()
+		var frames: Array[AtlasTexture] = []
+
+		if FileAccess.file_exists(sprite_path) or ResourceLoader.exists(sprite_path):
+			var sheet_tex = load(sprite_path)
+			# Slices the 5 frames (128x128 each)
+			for i in range(5):
+				var atlas = AtlasTexture.new()
+				atlas.atlas = sheet_tex
+				atlas.region = Rect2(i * 128, 0, 128, 128)
+				frames.append(atlas)
+
+			btn.icon = frames[0]
+			btn.expand_icon = true
+			btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			btn.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
+
+			var anim_data = {
+				"btn": btn,
+				"frames": frames,
+				"frame": 0,
+				"timer": 0.0,
+				"fps": 8.0,
+				"is_hovered": false
+			}
+			animated_placement_buttons.append(anim_data)
+
+			btn.mouse_entered.connect(func():
+				anim_data.is_hovered = true
+				var tw = create_tween().set_parallel(true)
+				tw.tween_property(btn, "scale", Vector2(1.1, 1.1), 0.1).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+				tw.tween_property(card_sb, "border_color", Color("#2ecc71"), 0.1) # Highlights green on hover!
+			)
+			btn.mouse_exited.connect(func():
+				anim_data.is_hovered = false
+				anim_data.frame = 0
+				anim_data.timer = 0.0
+				btn.icon = frames[0]
+				var tw = create_tween().set_parallel(true)
+				tw.tween_property(btn, "scale", Vector2(1.0, 1.0), 0.1).set_trans(Tween.TRANS_SINE)
+				tw.tween_property(card_sb, "border_color", Color("#223342"), 0.1)
+			)
+		else:
+			btn.text = "%s\n%d" % [cfg.name.split(" ")[0], cfg.cost]
+
+		btn.pressed.connect(func(): on_tower_select_clicked(type))
+
+func style_hud_control_btn(btn: Button, title: String, bg_col: Color, hover_col: Color, btn_sz: Vector2):
+	btn.text = title
+	btn.custom_minimum_size = btn_sz
+	btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+
+	var sb_normal = StyleBoxFlat.new()
+	sb_normal.bg_color = bg_col
+	sb_normal.border_color = bg_col.lightened(0.2)
+	sb_normal.set_border_width_all(1)
+	sb_normal.set_corner_radius_all(6)
+
+	var sb_hover = StyleBoxFlat.new()
+	sb_hover.bg_color = hover_col
+	sb_hover.border_color = hover_col.lightened(0.3)
+	sb_hover.set_border_width_all(1)
+	sb_hover.set_corner_radius_all(6)
+
+	btn.add_theme_stylebox_override("normal", sb_normal)
+	btn.add_theme_stylebox_override("hover", sb_hover)
+	btn.add_theme_color_override("font_color", Color.WHITE)
+	btn.add_theme_font_size_override("font_size", 12)
+
+# ==============================================================================
+# 🗺️ STAGE & ENEMY LOADER
+# ==============================================================================
 func load_active_stage():
 	var stage_num = GameState.selected_stage_id
 	var stage_path = "res://scenes/stages/Stage%d.tscn" % stage_num
-	
+
 	if not FileAccess.file_exists(stage_path):
 		stage_path = "res://scenes/stages/Stage1.tscn"
-		
+
 	var stage_res = load(stage_path)
 	var stage_inst = stage_res.instantiate()
 	$StageContainer.add_child(stage_inst)
-	
+
 	current_path_2d = stage_inst.find_child("Path2D", true, false)
-	if current_path_2d:
-		print("✅ Found Path2D in ", stage_path)
-	else:
-		print("⚠️ Path2D not found inside ", stage_path)
+
+func setup_tower_scenes():
+	tower_scenes = {
+		"SOLAR": solar_tower_scene,
+		"WIND": wind_tower_scene,
+		"MYCELIUM": load_scene_or_fallback("res://scenes/TowerMycelium.tscn", base_tower_scene),
+		"GEOTHERMAL": load_scene_or_fallback("res://scenes/TowerGeothermal.tscn", base_tower_scene),
+		"SUBSTATION": load_scene_or_fallback("res://scenes/TowerSubstation.tscn", base_tower_scene),
+		"SPRINKLER": load_scene_or_fallback("res://scenes/TowerSprinkler.tscn", base_tower_scene),
+		"SAPLING": load_scene_or_fallback("res://scenes/TowerSapling.tscn", base_tower_scene)
+	}
+
+func load_scene_or_fallback(path: String, fallback: PackedScene) -> PackedScene:
+	return load(path) if FileAccess.file_exists(path) else fallback
 
 func load_enemy_scenes():
 	var paths = {
@@ -119,62 +340,36 @@ func load_enemy_scenes():
 	}
 	var fallback = preload("res://scenes/SmogEnemy.tscn")
 	for k in paths:
-		if FileAccess.file_exists(paths[k]):
-			enemy_scenes[k] = load(paths[k])
-		else:
-			enemy_scenes[k] = fallback
+		enemy_scenes[k] = load(paths[k]) if FileAccess.file_exists(paths[k]) else fallback
 
-# --- TOWER SELECTION TRAY ---
-func build_tower_selection_bar():
-	# If player has old buttons in scene, keep them and add remaining towers
-	var bar_scroll = ScrollContainer.new()
-	bar_scroll.position = Vector2(160, 545)
-	bar_scroll.custom_minimum_size = Vector2(550, 48)
-	bar_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	$UI.add_child(bar_scroll)
-
-	var hbox = HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 6)
-	bar_scroll.add_child(hbox)
-
-	for type in GameState.TOWER_CATALOG:
-		var cfg = GameState.TOWER_CATALOG[type]
-		var btn = Button.new()
-		btn.text = "%s (%d)" % [cfg.name.split(" ")[0], cfg.cost]
-		btn.custom_minimum_size = Vector2(95, 36)
-		btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-		btn.pressed.connect(func(): on_tower_select_clicked(type))
-		hbox.add_child(btn)
-
+# ==============================================================================
+# 🏗️ TOWER PLACEMENT & INSPECTOR
+# ==============================================================================
 func on_tower_select_clicked(type: String):
-	print("🔘 Clicked build button for: ", type)
 	if GameState.is_paused:
 		show_warning_toast("⚠️ Game paused! Unpause to build.")
 		return
-		
+
 	var cost = GameState.TOWER_CATALOG[type].cost
 	if GameState.energy < cost:
-		show_warning_toast("⚡ Insufficient kWh! Need %d." % cost)
+		show_warning_toast("⚡ Need %d kWh for %s!" % [cost, GameState.TOWER_CATALOG[type].name])
 		return
 
 	if GameState.selected_build_type == type:
 		cancel_placement()
 	else:
 		GameState.selected_build_type = type
-		print("🎯 Placement mode ACTIVE for: ", type)
 		deselect_tower()
 
 func cancel_placement():
-	print("🚫 Placement canceled.")
 	GameState.selected_build_type = ""
 
-# --- INPUT HANDLING ---
 func _input(event):
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
 		if GameState.selected_build_type != "": cancel_placement()
 		else: deselect_tower()
 		return
-		
+
 	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
 		if GameState.selected_build_type != "": cancel_placement()
 		else: deselect_tower()
@@ -182,49 +377,52 @@ func _input(event):
 
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var hovered = get_viewport().gui_get_hovered_control()
-		# Ignore click only if clicking directly on a button inside $UI
+		# Only ignore if clicking directly on a button/HUD inside $UI
 		if hovered != null and $UI.is_ancestor_of(hovered):
 			return
-			
-		if GameState.is_paused: 
-			return
 
-		# PLACING TOWER
+		if GameState.is_paused: return
+
 		if GameState.selected_build_type != "":
-			print("🖱️ Left-click on map! Placing tower of type: ", GameState.selected_build_type)
 			handle_tower_placement()
 			return
 
-		# INSPECTING TOWER
 		check_tower_click(get_global_mouse_position())
 
-# --- PLACEMENT WITH FORCED Z-INDEX ---
 func handle_tower_placement():
 	var cfg = GameState.TOWER_CATALOG.get(GameState.selected_build_type, null)
-	if not cfg: 
-		print("❌ Error: Invalid tower type: ", GameState.selected_build_type)
-		return
+	if not cfg: return
 
 	if GameState.energy >= cfg.cost:
 		GameState.energy -= cfg.cost
-		
-		# 1. Grab the specific scene for this tower type
-		var scene_to_spawn: PackedScene = tower_scenes.get(GameState.selected_build_type, tower_scenes["SOLAR"])
-		var tower = scene_to_spawn.instantiate()
-		
-		# 2. Configure position and guarantee high Z-index so it renders in front of the map
-		tower.z_index = 20
+
+		var type_capitalized = GameState.selected_build_type.capitalize().replace(" ", "")
+		var specific_path = "res://scenes/Tower%s.tscn" % type_capitalized
+
+		var tower_to_spawn: PackedScene = null
+		if FileAccess.file_exists(specific_path):
+			tower_to_spawn = load(specific_path)
+		elif FileAccess.file_exists("res://scenes/BaseTower.tscn"):
+			tower_to_spawn = load("res://scenes/BaseTower.tscn")
+		else:
+			tower_to_spawn = load("res://scenes/TowerSolar.tscn")
+
+		var tower = tower_to_spawn.instantiate()
 		tower.name = cfg.name
+		tower.z_index = 20
 		tower.global_position = get_global_mouse_position()
-		
-		# 3. Add to the game world
+
+		for child in tower.get_children():
+			if child is CanvasItem:
+				child.z_as_relative = true
+				if child.z_index < 0: child.z_index = 0
+				child.visible = true
+
 		add_child(tower)
-		
-		# If the scene uses BaseTower script, initialize its properties
+
 		if tower.has_method("setup_tower"):
 			tower.setup_tower(GameState.selected_build_type)
-			
-		print("🏗️ SPAWNED %s at %s" % [cfg.name, tower.global_position])
+
 		cancel_placement()
 		update_ui()
 	else:
@@ -244,7 +442,8 @@ func check_tower_click(click_pos: Vector2):
 
 func select_tower(tower: Node2D):
 	selected_tower = tower
-	if selected_tower.has_method("play_punch_animation"): selected_tower.play_punch_animation()
+	if selected_tower.has_method("play_punch_animation"):
+		selected_tower.play_punch_animation()
 	if tower_menu:
 		tower_menu.visible = true
 		update_tower_menu()
@@ -305,13 +504,28 @@ func _draw():
 		draw_arc(tower_pos, r, 0.0, TAU, 64, Color(0.2, 0.7, 1.0, 0.8), 2.0)
 		draw_arc(tower_pos, 28.0, 0.0, TAU, 32, Color(1.0, 0.9, 0.2, 0.95), 3.0)
 
-# --- PROCESS & SPAWNING ---
+# ==============================================================================
+# 🌊 SPAWNING & ANIMATED HOVER PROCESSING
+# ==============================================================================
 func _process(delta: float):
+	# 1. Animate hovered tower buttons in the vertical right shelf
+	for item in animated_placement_buttons:
+		if item.is_hovered:
+			item.timer += delta
+			if item.timer >= (1.0 / item.fps):
+				item.timer = 0.0
+				item.frame = (item.frame + 1) % item.frames.size()
+				item.btn.icon = item.frames[item.frame]
+
 	if GameState.is_paused or GameState.is_game_over: return
 
 	if GameState.is_wave_active:
 		spawn_timer += delta
-		if spawn_timer >= 1.2 and enemies_spawned < enemies_to_spawn:
+
+		var stage_cfg = GameState.STAGES.get(GameState.selected_stage_id, GameState.STAGES[1])
+		var current_delay = stage_cfg.get("spawn_delay", 1.2)
+
+		if spawn_timer >= current_delay and enemies_spawned < enemies_to_spawn:
 			spawn_enemy_for_stage()
 			spawn_timer = 0.0
 			enemies_spawned += 1
@@ -322,21 +536,38 @@ func _process(delta: float):
 func spawn_enemy_for_stage():
 	if not current_path_2d: return
 
+	var stage_id = GameState.selected_stage_id
+	var w = GameState.wave
 	var enemy_key = "smog"
-	if GameState.selected_stage_id == 1:
-		if GameState.wave == 5 and enemies_spawned == 0: enemy_key = "boss"
-		elif GameState.wave >= 3: enemy_key = ["smog", "methane", "styrofoam"].pick_random()
+
+	if stage_id == 1:
+		if w == 5: enemy_key = "boss" if enemies_spawned == 0 else ["smog", "methane"].pick_random()
+		elif w == 4: enemy_key = ["soot", "methane", "styrofoam"].pick_random()
+		elif w == 3: enemy_key = ["methane", "styrofoam", "smog"].pick_random()
+		elif w == 2: enemy_key = "styrofoam" if randf() < 0.5 else "smog"
 		else: enemy_key = "smog"
-	elif GameState.selected_stage_id == 2:
-		if GameState.wave == 8 and enemies_spawned == 0: enemy_key = "garbage"
-		elif GameState.wave >= 4: enemy_key = ["soot", "ewaste", "styrofoam"].pick_random()
-		else: enemy_key = ["smog", "methane"].pick_random()
-	elif GameState.selected_stage_id == 3:
-		if GameState.wave == 10 and enemies_spawned == 0: enemy_key = "boss"
-		elif GameState.wave >= 5: enemy_key = ["garbage", "microplastics", "ewaste"].pick_random()
-		else: enemy_key = ["microplastics", "soot", "styrofoam"].pick_random()
+	elif stage_id == 2:
+		if w == 8: enemy_key = "boss" if enemies_spawned == 0 else ["ewaste", "soot"].pick_random()
+		elif w >= 6: enemy_key = ["ewaste", "soot", "methane"].pick_random()
+		elif w >= 4: enemy_key = ["ewaste", "styrofoam", "soot"].pick_random()
+		else: enemy_key = ["soot", "styrofoam", "methane"].pick_random()
+	elif stage_id == 3:
+		if w == 10: enemy_key = "garbage" if enemies_spawned == 0 else ["microplastics", "ewaste", "soot"].pick_random()
+		elif w == 5: enemy_key = "boss" if enemies_spawned == 0 else ["microplastics", "methane"].pick_random()
+		elif w >= 6: enemy_key = ["garbage", "microplastics", "ewaste"].pick_random()
+		elif w >= 3: enemy_key = ["microplastics", "ewaste", "styrofoam"].pick_random()
+		else: enemy_key = ["microplastics", "styrofoam", "methane"].pick_random()
 
 	var enemy = enemy_scenes[enemy_key].instantiate()
+
+	var cfg = GameState.STAGES.get(stage_id, GameState.STAGES[1])
+	var hp_mult = cfg.get("hp_mult", 1.0)
+	var speed_mult = cfg.get("speed_mult", 1.0)
+
+	enemy.max_hp *= hp_mult
+	enemy.current_hp = enemy.max_hp
+	enemy.speed *= speed_mult
+
 	enemy.reached_end.connect(_on_enemy_reached_end)
 	enemy.defeated.connect(_on_enemy_defeated)
 	current_path_2d.add_child(enemy)
@@ -379,6 +610,9 @@ func check_wave_status():
 		start_wave_btn.text = "▶️ Start Wave %d" % GameState.wave
 		update_ui()
 
+# ==============================================================================
+# 🏆 VICTORY & SAFE EXIT SYSTEM
+# ==============================================================================
 func trigger_stage_victory():
 	var cfg = GameState.STAGES[GameState.selected_stage_id]
 	GameState.energy += cfg.bonus_kwh
@@ -415,7 +649,7 @@ func show_victory_modal():
 	vb.add_child(title)
 
 	var sub = Label.new()
-	sub.text = "Regional biosphere secured! Telemetry logged to database."
+	sub.text = "Regional biosphere secured! Telemetry logged to MySQL."
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	sub.add_theme_font_size_override("font_size", 12)
 	vb.add_child(sub)
@@ -446,6 +680,83 @@ func show_victory_modal():
 	)
 	btn_row.add_child(end_btn)
 
+func build_exit_modal():
+	exit_modal = PanelContainer.new()
+	exit_modal.name = "ExitConfirmModal"
+	exit_modal.custom_minimum_size = Vector2(400, 190)
+	exit_modal.position = Vector2(280, 200)
+	exit_modal.z_index = 60
+	exit_modal.visible = false
+
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color("#102231")
+	sb.border_color = Color("#e74c3c")
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(12)
+	sb.content_margin_left = 18
+	sb.content_margin_right = 18
+	sb.content_margin_top = 18
+	sb.content_margin_bottom = 18
+	exit_modal.add_theme_stylebox_override("panel", sb)
+	$UI.add_child(exit_modal)
+
+	var vb = VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 12)
+	exit_modal.add_child(vb)
+
+	var title = Label.new()
+	title.text = "⚠️ RETREAT FROM OPERATION?"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 16)
+	title.add_theme_color_override("font_color", Color("#e74c3c"))
+	vb.add_child(title)
+
+	var desc = Label.new()
+	desc.text = "Progress will be concluded. Current score & clean energy telemetry will be saved to MySQL."
+	desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc.add_theme_font_size_override("font_size", 11)
+	desc.add_theme_color_override("font_color", Color("#bdc3c7"))
+	vb.add_child(desc)
+
+	var btn_row = HBoxContainer.new()
+	btn_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	btn_row.add_theme_constant_override("separation", 16)
+	vb.add_child(btn_row)
+
+	var confirm_btn = Button.new()
+	confirm_btn.text = "Confirm & Exit"
+	confirm_btn.custom_minimum_size = Vector2(130, 36)
+	confirm_btn.pressed.connect(confirm_safe_exit)
+	btn_row.add_child(confirm_btn)
+
+	var cancel_btn = Button.new()
+	cancel_btn.text = "Resume"
+	cancel_btn.custom_minimum_size = Vector2(130, 36)
+	cancel_btn.pressed.connect(cancel_safe_exit)
+	btn_row.add_child(cancel_btn)
+
+func _on_exit_stage_clicked():
+	GameState.is_paused = true
+	Engine.time_scale = 1.0
+	exit_modal.visible = true
+
+func cancel_safe_exit():
+	exit_modal.visible = false
+	GameState.is_paused = false
+	Engine.time_scale = game_speed
+
+func confirm_safe_exit():
+	if GameState.sustainability_score > 0 or GameState.clean_kwh_earned > 0:
+		sync_score_to_mysql()
+	Engine.time_scale = 1.0
+	if has_node("/root/SoundManager"):
+		SoundManager.stop_music()
+	SceneTransition.change_scene("res://scenes/MainMenu.tscn", 0.4)
+
+# ==============================================================================
+# ⚙️ CONTROL BUTTON CALLBACKS
+# ==============================================================================
 func _on_start_wave_pressed():
 	if GameState.is_paused: return
 	if not GameState.is_wave_active:

@@ -93,7 +93,7 @@ func shoot(target_enemy: Node2D):
 	
 	# Passes 'self' as the source tower so stats credit to this tower
 	if proj.has_method("setup"):
-		proj.setup(target_enemy, damage, 480.0, "solar", self)
+		proj.setup(target_enemy, damage, 480.0, "sprinkler", self)
 	else:
 		proj.target = target_enemy
 		proj.damage = damage
